@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OVERWATCH_SYSTEM_v11.5</title>
+    <title>OVERWATCH_SYSTEM_v12.0</title>
     <style>
         body { background:#010501; color:#00ff33; font-family:'Courier New',monospace; margin:0; padding:10px; height:100vh; box-sizing:border-box; display:flex; flex-direction:column; overflow:hidden; text-shadow:0 0 5px #00ff33; user-select:none; -webkit-user-select:none; }
         body::before { content:" "; display:block; position:fixed; top:0; left:0; bottom:0; right:0; background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%); z-index:9999; background-size:100% 4px; pointer-events:none; }
@@ -29,18 +29,22 @@
         #search-input { background:#000; color:#00ff33; border:1px solid #00ff33; padding:10px; font-family:'Courier New',monospace; font-size:1rem; width:100%; box-sizing:border-box; outline:none; text-transform:uppercase; }
         #search-results { margin-top:15px; overflow-y:auto; flex-grow:1; border:1px dashed #004400; padding:5px; }
         .search-item { padding:8px; border-bottom:1px solid #002200; cursor:pointer; font-size:0.85rem; }
+        
+        /* REINES STREAM-FENSTER: Absolut Klickgeschützt! */
         #stream-window { position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:6; display:none; flex-direction:column; }
-        #video-player { width:100%; height:calc(100% - 30px); background:#000; border:none; filter:hue-rotate(60deg) contrast(1.4) brightness(0.8); }
+        /* pointer-events: none sorgt dafür, dass man das Video NICHT anklicken kann! */
+        #video-player { width:100%; height:calc(100% - 30px); background:#000; border:none; pointer-events:none; filter:hue-rotate(60deg) contrast(1.4) brightness(0.8); }
         .layer-bar { background:#001500; height:30px; display:flex; justify-content:space-between; align-items:center; padding:0 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #00ff33; }
         @keyframes sweep { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
     <header>
-        <div>[SYSTEM: OPERATIONAL_GRID] // VER_11.5_FIXED</div>
+        <div>[SYSTEM: OPERATIONAL_GRID] // VER_12.0_CLEAN</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
     <div class="container">
+        <!-- LINKES KONTROLLZENTRUM -->
         <div class="panel left">
             <div class="panel-title">> INTERFACE_CONTROL</div>
             <div class="button-group">
@@ -50,14 +54,16 @@
                 <button onclick="closeAllLayers()">CLEAR PANEL</button>
             </div>
             <div id="terminal">
-                <div style="color:#00ff33;">[SYSTEM] System v11.5 erfolgreich re-kalibriert.</div>
-                <div style="color:#00ff33;">[SYSTEM] Keine Syntaxfehler. Warte auf Befehl...</div>
+                <div style="color:#00ff33;">[SYSTEM] System v12.0 unblockierbar kalibriert.</div>
+                <div style="color:#00ff33;">[SYSTEM] Reine Server-Feeds aktiv. YouTube restlos entfernt.</div>
             </div>
             <div id="terminal-input-container">
                 <span style="color:#00ff33; font-size:0.8rem; font-weight:bold;">CMD></span>
                 <input type="text" id="cmd-input" placeholder="ID eingeben und Enter drücken..." onkeypress="handleTerminalInput(event)">
             </div>
         </div>
+        
+        <!-- RECHTES HAUPTDISPLAY -->
         <div class="panel right">
             <div class="panel-title">> VISUAL_CORE_DISPLAY</div>
             <div id="display-master">
@@ -67,16 +73,19 @@
                         <span>DATABASE_SEARCH</span>
                         <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
-                    <input type="text" id="search-input" placeholder="Buchstaben tippen..." oninput="filterCountries()">
+                    <input type="text" id="search-input" placeholder="Land eingeben (z.B. Kroatien, Island)..." oninput="filterCountries()">
                     <div id="search-results"></div>
                 </div>
+                
+                <!-- Reines Videofenster: Lädt klicksicheres HTML5-Video anstelle von YouTube -->
                 <div id="stream-window">
                     <div class="layer-bar">
                         <span id="stream-title">TUNNEL_LINK</span>
                         <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeStreamWindow()">[X] CLOSE</span>
                     </div>
-                    <iframe id="video-player" src="" allow="autoplay"></iframe>
+                    <video id="video-player" autoplay loop muted playsinline></video>
                 </div>
+                
                 <svg class="vector-map" viewBox="0 0 1000 500">
                     <path class="map-grid" d="M0,100 L1000,100 M0,200 L1000,200 M0,300 L1000,300 M0,400 L1000,400 M100,0 L100,500 M200,0 L200,500 M300,0 L300,500 M400,0 L400,500 M500,0 L500,500" />
                     <path class="map-land" d="M150,80 L220,100 L250,150 L200,180 L260,230 L220,280 L250,450 L200,420 M450,100 L550,70 L700,60 L850,90 L900,150 L800,200 L650,220 L520,140 L440,250 L480,300 L520,400 L400,350 Z" />
@@ -85,7 +94,7 @@
             </div>
         </div>
     </div>
-        <script>
+    <script>
         let audioCtx = null;
         function playHackerSound(f, t='square', d=0.1) {
             try {
@@ -103,22 +112,19 @@
             t.innerHTML += `<div><span style="color:#444;">[${new Date().toLocaleTimeString()}]</span> <span style="color:${c};">${m}</span></div>`;
             t.scrollTop = t.scrollHeight;
         }
-        const allCountriesCache = [
-            { name: "Croatia (Kroatien)", code: "HR", cap: "Zagreb", pop: "4.000.000", lang: "Kroatisch", cur: "Euro" },
-            { name: "Germany (Deutschland)", code: "DE", cap: "Berlin", pop: "83.200.000", lang: "Deutsch", cur: "Euro" },
-            { name: "Japan", code: "JP", cap: "Tokio", pop: "125.100.000", lang: "Japanisch", cur: "Yen" },
-            { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington", pop: "333.000.000", lang: "Englisch", cur: "US-Dollar" }
-        ];
+
+        // ABSOLUT REINE SERVER-STREAMS (.mp4/.m3u8): Keine Webseiten, kein YouTube, klicksicher!
         const webcamDatabase = [
-            { id: 1, name: "BERLIN (Verkehrs-Grid)", url: "https://youtube.com" },
-            { id: 2, name: "TOKIO (Shibuya Live)", url: "https://youtube.com" },
-            { id: 3, name: "NASA HQ (Missions-Control)", url: "https://youtube.com" }
+            { id: 1, name: "ORBITAL_NODE (Satelliten-Feed)", url: "https://googleapis.com" },
+            { id: 2, name: "TOKIO (Knotenpunkt-Matrix)", url: "https://googleapis.com" },
+            { id: 3, name: "ZAGREB (Uplink-Sektor)", url: "https://googleapis.com" }
         ];
-               function printWebcamMenu() {
+
+        function printWebcamMenu() {
             closeAllLayers(); playHackerSound(440);
             document.getElementById('terminal-input-container').style.display = 'flex';
-            logTerminal("=== [ WEBCAM DIRECTORY ] ===", "warn");
-            webcamDatabase.forEach(cam => { logTerminal(`ID [${cam.id}] -> CONNECT: ${cam.name}`, "info"); });
+            logTerminal("======= [ LIVE CAM DIRECTORY ] =======", "warn");
+            webcamDatabase.forEach(cam => { logTerminal(` ID [ ${cam.id} ] -> CONNECT: ${cam.name}`, "info"); });
             logTerminal("CMD: Tippe ID unten ein & drücke Enter.", "warn");
             document.getElementById('cmd-input').focus();
         }
@@ -127,7 +133,7 @@
                 const val = parseInt(document.getElementById('cmd-input').value.trim());
                 const cam = webcamDatabase.find(c => c.id === val);
                 if (cam) {
-                    playHackerSound(800); logTerminal(`Verbinde Sektor-ID [${val}]...`, "warn");
+                    playHackerSound(800); logTerminal(`Verbinde Server-Uplink [${val}]...`, "warn");
                     buildStreamTunnel(cam.name, cam.url);
                     document.getElementById('cmd-input').value = "";
                 } else {
@@ -137,42 +143,57 @@
         }
         function triggerLiveRadarScan() {
             closeAllLayers(); playHackerSound(600, 'sine');
-            logTerminal("Scanne Subnetze nach offenen Ports...", "warn");
+            logTerminal("Starte orbitalen Port-Scan... Abfangen von Subnetzen.", "warn");
             setTimeout(() => {
                 const rx = Math.floor(Math.random() * 600) + 150, ry = Math.floor(Math.random() * 200) + 100;
                 const circle = document.createElementNS("http://w3.org", "circle");
                 circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "10"); circle.setAttribute("fill", "none"); circle.setAttribute("stroke", "#ff0055"); circle.setAttribute("stroke-width", "2");
                 document.getElementById('radar-targets').appendChild(circle);
                 const cam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
-                logTerminal(`[UPLINK HIT!!] Signal abgefangen! -> Sektor: ${cam.name}`, "danger");
+                logTerminal(`[UPLINK HIT!!] Reiner Server-Stream abgefangen -> ${cam.name}`, "danger");
                 buildStreamTunnel(cam.name, cam.url);
             }, 1000);
         }
         function buildStreamTunnel(title, url) {
             document.getElementById('stream-window').style.display = 'flex';
-            document.getElementById('video-player').src = url;
+            const player = document.getElementById('video-player');
+            player.src = url; player.play();
             document.getElementById('stream-title').innerText = `LINK // ${title.toUpperCase()}`;
         }
         function closeStreamWindow() {
             document.getElementById('stream-window').style.display = 'none';
-            document.getElementById('video-player').src = "";
+            const player = document.getElementById('video-player');
+            player.pause(); player.src = "";
             logTerminal("Tunnel geschlossen.", "info");
         }
-        function openSearchLayer() { closeAllLayers(); playHackerSound(440); document.getElementById('search-layer').style.display = 'flex'; document.getElementById('search-input').focus(); filterCountries(); }
+        function openSearchLayer() { closeAllLayers(); playHackerSound(440); document.getElementById('search-layer').style.display = 'flex'; document.getElementById('search-input').focus(); }
+        
+        // 🟢 ECHTE LIVE INTERNET-ABFRAGE ÜBER DIE WELT-DATENBANK (Ungeschmuggelt & live)
         function filterCountries() {
-            const q = document.getElementById('search-input').value.toLowerCase();
+            const q = document.getElementById('search-input').value.trim();
             const r = document.getElementById('search-results'); r.innerHTML = '';
-            if(q.length === 0) { r.innerHTML = '<div style="color:#444;padding:10px;">Anfangsbuchstaben tippen...</div>'; return; }
-            const filtered = allCountriesCache.filter(c => c.name.toLowerCase().includes(q));
-            if(filtered.length === 0) { r.innerHTML = '<div style="color:#ff0055;padding:10px;">KEINE KNOTEN GEFUNDEN.</div>'; return; }
-            filtered.forEach(c => {
-                const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.name.toUpperCase()}`;
-                d.onclick = () => { logTerminal(`=[${c.code}]= Head: ${c.cap} | Pop: ${c.pop} | Lang: ${c.lang} | Cur: ${c.cur}`, "warn"); closeAllLayers(); };
-                r.appendChild(d);
-            });
+            if(q.length < 2) { r.innerHTML = '<div style="color:#444;padding:10px;">Mindestens 2 Buchstaben tippen...</div>'; return; }
+            
+            // Holt die echten, aktuellen Daten über jedes Land live aus dem Internet!
+            fetch(`https://restcountries.com{q}?fields=name,capital,population,languages,currencies,cca2`)
+                .then(res => { if(!res.ok) throw new Error(); return res.json(); })
+                .then(data => {
+                    data.slice(0, 5).forEach(c => {
+                        const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.name.common.toUpperCase()} [${c.cca2}]`;
+                        d.onclick = () => {
+                            const cap = c.capital ? c.capital[0] : 'Keine';
+                            const pop = c.population.toLocaleString();
+                            const lang = Object.values(c.languages).join(', ');
+                            const cur = Object.values(c.currencies).map(val => val.name).join(', ');
+                            logTerminal(`=[${c.cca2}]= Head: ${cap} | Pop: ${pop} | Lang: ${lang} | Cur: ${cur}`, "warn");
+                            closeAllLayers();
+                        };
+                        r.appendChild(d);
+                    });
+                })
+                .catch(() => { r.innerHTML = '<div style="color:#ff0055;padding:10px;">KEINE KNOTEN IM NETZWERK GEFOUNDEN.</div>'; });
         }
         function closeAllLayers() { document.getElementById('search-layer').style.display='none'; document.getElementById('terminal-input-container').style.display='none'; document.getElementById('search-input').value=""; document.getElementById('cmd-input').value=""; }
     </script>
 </body>
 </html>
-     
