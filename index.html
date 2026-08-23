@@ -3,415 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OVERWATCH_SYSTEM_v11.0</title>
-    
+    <title>OVERWATCH_SYSTEM_v11.5</title>
     <style>
-        body {
-            background-color: #010501;
-            color: #00ff33;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0; padding: 10px;
-            height: 100vh;
-            box-sizing: border-box;
-            display: flex; flex-direction: column;
-            text-shadow: 0 0 5px #00ff33;
-            user-select: none; -webkit-user-select: none;
-            overflow: hidden;
-        }
-
-        /* CRT Monitor Scanline-Effekt */
-        body::before {
-            content: " "; display: block;
-            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
-            z-index: 9999; background-size: 100% 4px; pointer-events: none;
-        }
-
-        header {
-            border-bottom: 2px solid #00ff33;
-            padding-bottom: 5px; margin-bottom: 10px;
-            display: flex; justify-content: space-between;
-            font-size: 0.8rem; font-weight: bold; flex-shrink: 0;
-        }
-
-        .container {
-            display: flex; flex-direction: row; gap: 15px; flex-grow: 1;
-            height: calc(100vh - 50px);
-        }
-
-        @media (max-width: 768px) {
-            .container { flex-direction: column; overflow-y: auto; }
-            .panel.left { height: 340px !important; flex-shrink: 0; }
-            .panel.right { height: 320px !important; flex-shrink: 0; margin-bottom: 25px; }
-        }
-
-        .panel {
-            border: 1px solid #00ff33;
-            background: rgba(0, 8, 0, 0.7);
-            padding: 10px;
-            box-shadow: inset 0 0 15px rgba(0, 255, 51, 0.2);
-            display: flex; flex-direction: column; box-sizing: border-box;
-        }
-
-        .panel.left { width: 100%; flex: 1.2; height: 100%; }
-        .panel.right { width: 100%; flex: 1.5; height: 100%; position: relative; }
-
-        .panel-title {
-            font-weight: bold; text-transform: uppercase;
-            border-bottom: 1px dashed #00ff33;
-            padding-bottom: 3px; margin-bottom: 8px;
-            font-size: 0.85rem; letter-spacing: 1px; flex-shrink: 0;
-        }
-
-        .button-group {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-shrink: 0;
-        }
-
-        button {
-            background: #001500; color: #00ff33; border: 1px solid #00ff33;
-            padding: 12px 5px; cursor: pointer;
-            font-family: 'Courier New', monospace; font-weight: bold;
-            font-size: 0.75rem; text-transform: uppercase;
-            box-shadow: 0 0 2px #00ff33; transition: all 0.1s;
-        }
-
-        button:active { background: #00ff33; color: #000; }
-
-        /* Fester Terminal-Kasten */
-        #terminal {
-            flex-grow: 1; background: #000; padding: 8px;
-            overflow-y: scroll; font-size: 0.75rem;
-            border: 1px solid #003300; margin-top: 10px;
-            height: 140px; box-sizing: border-box;
-        }
-        #terminal::-webkit-scrollbar { width: 4px; }
-        #terminal::-webkit-scrollbar-thumb { background: #004400; }
-
-        /* Integriertes Input-Feld für Terminal-Eingaben über der Tastatur */
-        #terminal-input-container {
-            display: none; margin-top: 5px; gap: 5px; flex-shrink: 0;
-        }
-        #cmd-input {
-            background: #000; color: #00ff33; border: 1px solid #00ff33;
-            padding: 5px; font-family: 'Courier New', monospace; font-size: 0.8rem;
-            flex-grow: 1; outline: none;
-        }
-
-        #display-master {
-            width: 100%; height: 100%; background: #000;
-            position: relative; overflow: hidden; border: 1px solid #003300;
-        }
-
-        #radar-sweep {
-            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
-            background: conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg);
-            transform-origin: center; animation: sweep 3.5s linear infinite;
-            pointer-events: none; z-index: 3;
-        }
-
-        svg.vector-map { width: 100%; height: 100%; z-index: 2; position: absolute; top:0; left:0; }
-        .map-land { fill: none; stroke: #00ff33; stroke-width: 1.5; opacity: 0.75; }
-        .map-grid { fill: none; stroke: #001800; stroke-width: 0.5; }
-
-        /* Suchmaske Overlay */
-        #search-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 5; background: rgba(0, 5, 0, 0.95); display: none;
-            flex-direction: column; padding: 15px; box-sizing: border-box;
-        }
-
-        #search-input {
-            background: #000; color: #00ff33; border: 1px solid #00ff33;
-            padding: 10px; font-family: 'Courier New', monospace;
-            font-size: 1rem; width: 100%; box-sizing: border-box;
-            outline: none; text-transform: uppercase; box-shadow: 0 0 5px #00ff33;
-        }
-
-        #search-results {
-            margin-top: 15px; overflow-y: auto; flex-grow: 1;
-            border: 1px dashed #004400; padding: 5px;
-        }
-
-        .search-item {
-            padding: 8px; border-bottom: 1px solid #002200; cursor: pointer;
-            font-size: 0.85rem; transition: background 0.2s;
-        }
-        .search-item:hover { background: #003300; color: #fff; }
-
-        /* REINES STREAM WINDOW (Ohne Menüs, reines Video) */
-        #stream-window {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 6; display: none; flex-direction: column;
-        }
-        #video-player { width: 100%; height: calc(100% - 30px); background: #000; border: none; }
-        #video-player.matrix-filter { filter: hue-rotate(60deg) contrast(1.4) brightness(0.8); }
-
-        .layer-bar {
-            background: #001500; height: 30px; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 10px; font-size: 0.75rem; font-weight: bold; border-bottom: 1px solid #00ff33; flex-shrink: 0;
-        }
-
-        @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        body { background:#010501; color:#00ff33; font-family:'Courier New',monospace; margin:0; padding:10px; height:100vh; box-sizing:border-box; display:flex; flex-direction:column; overflow:hidden; text-shadow:0 0 5px #00ff33; user-select:none; -webkit-user-select:none; }
+        body::before { content:" "; display:block; position:fixed; top:0; left:0; bottom:0; right:0; background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%); z-index:9999; background-size:100% 4px; pointer-events:none; }
+        header { border-bottom:2px solid #00ff33; padding-bottom:5px; margin-bottom:10px; display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; flex-shrink:0; }
+        .container { display:flex; gap:15px; flex-grow:1; height:calc(100vh - 50px); }
+        @media (max-width:768px) { .container { flex-direction:column; overflow-y:auto; } .panel.left { height:340px !important; flex-shrink:0; } .panel.right { height:320px !important; flex-shrink:0; margin-bottom:25px; } }
+        .panel { border:1px solid #00ff33; background:rgba(0,8,0,0.7); padding:10px; box-shadow:inset 0 0 15px rgba(0,255,51,0.2); display:flex; flex-direction:column; box-sizing:border-box; }
+        .panel.left { width:100%; flex:1.2; } .panel.right { width:100%; flex:1.5; position:relative; }
+        .panel-title { font-weight:bold; text-transform:uppercase; border-bottom:1px dashed #00ff33; padding-bottom:3px; margin-bottom:8px; font-size:0.85rem; letter-spacing:1px; }
+        .button-group { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        button { background:#001500; color:#00ff33; border:1px solid #00ff33; padding:12px 5px; cursor:pointer; font-family:'Courier New',monospace; font-weight:bold; font-size:0.75rem; text-transform:uppercase; }
+        button:active { background:#00ff33; color:#000; }
+        #terminal { flex-grow:1; background:#000; padding:8px; overflow-y:scroll; font-size:0.75rem; border:1px solid #003300; margin-top:10px; height:140px; box-sizing:border-box; }
+        #terminal::-webkit-scrollbar { width:4px; } #terminal::-webkit-scrollbar-thumb { background:#004400; }
+        #terminal-input-container { display:none; margin-top:5px; gap:5px; }
+        #cmd-input { background:#000; color:#00ff33; border:1px solid #00ff33; padding:5px; font-family:'Courier New',monospace; font-size:0.8rem; flex-grow:1; outline:none; }
+        #display-master { width:100%; height:100%; background:#000; position:relative; overflow:hidden; border:1px solid #003300; }
+        #radar-sweep { position:absolute; width:200%; height:200%; top:-50%; left:-50%; background:conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg); transform-origin:center; animation:sweep 3.5s linear infinite; pointer-events:none; z-index:3; }
+        svg.vector-map { width:100%; height:100%; z-index:2; position:absolute; top:0; left:0; }
+        .map-land { fill:none; stroke:#00ff33; stroke-width:1.5; opacity:0.75; }
+        .map-grid { fill:none; stroke:#001800; stroke-width:0.5; }
+        #search-layer { position:absolute; top:0; left:0; width:100%; height:100%; z-index:5; background:rgba(0,5,0,0.95); display:none; flex-direction:column; padding:15px; box-sizing:border-box; }
+        #search-input { background:#000; color:#00ff33; border:1px solid #00ff33; padding:10px; font-family:'Courier New',monospace; font-size:1rem; width:100%; box-sizing:border-box; outline:none; text-transform:uppercase; }
+        #search-results { margin-top:15px; overflow-y:auto; flex-grow:1; border:1px dashed #004400; padding:5px; }
+        .search-item { padding:8px; border-bottom:1px solid #002200; cursor:pointer; font-size:0.85rem; }
+        #stream-window { position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:6; display:none; flex-direction:column; }
+        #video-player { width:100%; height:calc(100% - 30px); background:#000; border:none; filter:hue-rotate(60deg) contrast(1.4) brightness(0.8); }
+        .layer-bar { background:#001500; height:30px; display:flex; justify-content:space-between; align-items:center; padding:0 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #00ff33; }
+        @keyframes sweep { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
-
     <header>
-        <div>[SYSTEM: OPERATIONAL_GRID] // VER_11.0_LIVE</div>
+        <div>[SYSTEM: OPERATIONAL_GRID] // VER_11.5_FIXED</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
-
     <div class="container">
-        <!-- LINKES KONTROLLZENTRUM -->
         <div class="panel left">
             <div class="panel-title">> INTERFACE_CONTROL</div>
             <div class="button-group">
-                <button onclick="playHackerSound(520, 'sine', 0.08); triggerLiveRadarScan();">SCAN SENSORS</button>
-                <button onclick="playHackerSound(380, 'sawtooth', 0.12); openSearchLayer();">LÄNDER STATS</button>
-                <button onclick="playHackerSound(880, 'triangle', 0.05); printWebcamMenu();">LIVE WEBCAM</button>
-                <button onclick="playHackerSound(580, 'square', 0.1); closeAllLayers();">CLEAR PANEL</button>
+                <button onclick="triggerLiveRadarScan()">SCAN SENSORS</button>
+                <button onclick="openSearchLayer()">LÄNDER STATS</button>
+                <button onclick="printWebcamMenu()">LIVE WEBCAM</button>
+                <button onclick="closeAllLayers()">CLEAR PANEL</button>
             </div>
-            
-            <!-- Das CMD-Terminal -->
             <div id="terminal">
-                <div style="color: #00ff33;">[SYSTEM] Terminal-Protokoll v11.0 geladen.</div>
-                <div style="color: #00ff33;">[SYSTEM] Radar-Subnetz im Hintergrund aktiv...</div>
+                <div style="color:#00ff33;">[SYSTEM] System v11.5 erfolgreich re-kalibriert.</div>
+                <div style="color:#00ff33;">[SYSTEM] Keine Syntaxfehler. Warte auf Befehl...</div>
             </div>
-
-            <!-- Integrierte Befehlszeile für Eingaben direkt über der Tastatur -->
             <div id="terminal-input-container">
-                <span style="color: #00ff33; font-size: 0.8rem; font-weight: bold;">CMD></span>
-                <input type="text" id="cmd-input" placeholder="Verbindungs-ID eingeben..." onkeypress="handleTerminalInput(event)">
+                <span style="color:#00ff33; font-size:0.8rem; font-weight:bold;">CMD></span>
+                <input type="text" id="cmd-input" placeholder="ID eingeben und Enter drücken..." onkeypress="handleTerminalInput(event)">
             </div>
         </div>
-
-        <!-- RECHTES HAUPTDISPLAY -->
         <div class="panel right">
             <div class="panel-title">> VISUAL_CORE_DISPLAY</div>
             <div id="display-master">
-                
-                <!-- Permanenter Radar-Strahl -->
                 <div id="radar-sweep"></div>
-                
-                <!-- Suchen-Overlay -->
                 <div id="search-layer">
-                    <div class="layer-bar" style="margin-bottom: 10px;">
-                        <span>DATABASE_SEARCH // TARGET_SELECTION</span>
-                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
+                    <div class="layer-bar" style="margin-bottom:10px;">
+                        <span>DATABASE_SEARCH</span>
+                        <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
-                    <input type="text" id="search-input" placeholder="Anfangsbuchstaben eingeben (z.B. K oder H)..." oninput="filterCountries()">
+                    <input type="text" id="search-input" placeholder="Buchstaben tippen..." oninput="filterCountries()">
                     <div id="search-results"></div>
                 </div>
-
-                <!-- Reines Videofenster (Vollbild ohne Menü-Müll) -->
                 <div id="stream-window">
                     <div class="layer-bar">
-                        <span id="stream-title">TUNNEL_LINK // ESTABLISHED</span>
-                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeStreamWindow()">[X] DISCONNECT</span>
+                        <span id="stream-title">TUNNEL_LINK</span>
+                        <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeStreamWindow()">[X] CLOSE</span>
                     </div>
-                    <iframe id="video-player" class="matrix-filter" src="" allow="autoplay"></iframe>
+                    <iframe id="video-player" src="" allow="autoplay"></iframe>
                 </div>
-                
-                <!-- Vektor-Weltkarte -->
                 <svg class="vector-map" viewBox="0 0 1000 500">
-                    <path class="map-grid" d="M0,100 L1000,100 M0,200 L1000,200 M0,300 L1000,300 M0,400 L1000,400 M100,0 L100,500 M200,0 L200,500 M300,0 L300,500 M400,0 L400,500 M500,0 L500,500 M600,0 L600,500 M700,0 L700,500 M800,0 L800,500 M900,0 L900,500" />
-                    <path class="map-land" d="M150,80 L220,100 L250,150 L200,180 L260,230 L220,280 L240,320 L270,350 L250,450 L220,480 L200,420 L210,320 L160,270 L140,200 L110,140 L100,90 Z" />
-                    <path class="map-land" d="M450,100 L550,70 L700,60 L850,90 L900,150 L800,200 L750,180 L650,220 L580,180 L520,140 L460,180 L440,250 L480,300 L550,330 L520,400 L480,450 L450,420 L400,350 L380,250 L420,200 L400,150 Z" />
-                    <path class="map-land" d="M780,360 L840,350 L880,390 L850,440 L790,420 Z" />
+                    <path class="map-grid" d="M0,100 L1000,100 M0,200 L1000,200 M0,300 L1000,300 M0,400 L1000,400 M100,0 L100,500 M200,0 L200,500 M300,0 L300,500 M400,0 L400,500 M500,0 L500,500" />
+                    <path class="map-land" d="M150,80 L220,100 L250,150 L200,180 L260,230 L220,280 L250,450 L200,420 M450,100 L550,70 L700,60 L850,90 L900,150 L800,200 L650,220 L520,140 L440,250 L480,300 L520,400 L400,350 Z" />
                     <g id="radar-targets"></g>
                 </svg>
             </div>
         </div>
     </div>
-    <script>
+        <script>
         let audioCtx = null;
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playHackerSound(f, t='square', d=0.1) {
+            try {
+                if(!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.05, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + d);
+                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
+            } catch(e){}
         }
-
-        function playHackerSound(frequency, type = 'square', duration = 0.1) {
-            initAudio(); if (!audioCtx) return;
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = type; oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
-            oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
+        setInterval(() => { document.getElementById('live-clock').innerText = new Date().toISOString().replace('T', ' ').substring(0, 19); }, 1000);
+        function logTerminal(m, type='info') {
+            const t = document.getElementById('terminal');
+            let c = '#00ff33'; if(type==='warn') c='#ffb000'; if(type==='danger') c='#ff0055';
+            t.innerHTML += `<div><span style="color:#444;">[${new Date().toLocaleTimeString()}]</span> <span style="color:${c};">${m}</span></div>`;
+            t.scrollTop = t.scrollHeight;
         }
-
-        setInterval(() => {
-            document.getElementById('live-clock').innerText = new Date().toISOString().replace('T', ' ').substring(0, 19);
-        }, 1000);
-
-        function logTerminal(message, type = 'info') {
-            const terminal = document.getElementById('terminal');
-            let color = '#00ff33';
-            if (type === 'warn') color = '#ffb000';
-            if (type === 'danger') color = '#ff0055';
-            terminal.innerHTML += `<div><span style="color: #444;">[${new Date().toLocaleTimeString()}]</span> <span style="color: ${color};">${message}</span></div>`;
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        // UNBLOCKIERBARES INTERNAL REGISTER
         const allCountriesCache = [
-            { name: "Croatia (Kroatien)", code: "HR", cap: "Zagreb", pop: "4.000.000", lang: "Kroatisch", cur: "Euro (EUR)" },
-            { name: "Germany (Deutschland)", code: "DE", cap: "Berlin", pop: "83.200.000", lang: "Deutsch", cur: "Euro (EUR)" },
-            { name: "Japan", code: "JP", cap: "Tokio", pop: "125.100.000", lang: "Japanisch", cur: "Yen (JPY)" },
-            { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington D.C.", pop: "333.000.000", lang: "Englisch", cur: "US-Dollar (USD)" }
+            { name: "Croatia (Kroatien)", code: "HR", cap: "Zagreb", pop: "4.000.000", lang: "Kroatisch", cur: "Euro" },
+            { name: "Germany (Deutschland)", code: "DE", cap: "Berlin", pop: "83.200.000", lang: "Deutsch", cur: "Euro" },
+            { name: "Japan", code: "JP", cap: "Tokio", pop: "125.100.000", lang: "Japanisch", cur: "Yen" },
+            { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington", pop: "333.000.000", lang: "Englisch", cur: "US-Dollar" }
         ];
-
-        // DATENBANK FÜR REINE VIDEO-FEEDS (Keine Webseiten-Spiegelungen mehr!)
         const webcamDatabase = [
-            { id: 1, name: "BERLIN (Umlaufüberwachung)", url: "https://youtube-nocookie.com" },
-            { id: 2, name: "TOKIO (Shibuya Kreuzung)", url: "https://youtube-nocookie.com" },
-            { id: 3, name: "ZAGREB (Hauptstadt-Zentrum)", url: "https://youtube-nocookie.com" },
-            { id: 4, name: "NASA TV (Missionskontrolle)", url: "https://youtube-nocookie.com" }
+            { id: 1, name: "BERLIN (Verkehrs-Grid)", url: "https://youtube.com" },
+            { id: 2, name: "TOKIO (Shibuya Live)", url: "https://youtube.com" },
+            { id: 3, name: "NASA HQ (Missions-Control)", url: "https://youtube.com" }
         ];
-
-        // 1. WEBCAM-VERZEICHNIS DIREKT IM TERMINAL PRINTEN
-        function printWebcamMenu() {
-            closeAllLayers();
+               function printWebcamMenu() {
+            closeAllLayers(); playHackerSound(440);
             document.getElementById('terminal-input-container').style.display = 'flex';
-            logTerminal("======= [ LIVE CAM DIRECTORY ] =======", "warn");
-            logTerminal("Verfügbare weltweite Video-Uplinks:");
-            
-            webcamDatabase.forEach(cam => {
-                logTerminal(` ID [ ${cam.id} ] -> CONNECT_TO: ${cam.name}`, "info");
-            });
-            
-            logTerminal("======================================", "warn");
-            logTerminal("Befehl: Tippe die ID im CMD-Feld ein & drücke Enter.", "warn");
+            logTerminal("=== [ WEBCAM DIRECTORY ] ===", "warn");
+            webcamDatabase.forEach(cam => { logTerminal(`ID [${cam.id}] -> CONNECT: ${cam.name}`, "info"); });
+            logTerminal("CMD: Tippe ID unten ein & drücke Enter.", "warn");
             document.getElementById('cmd-input').focus();
         }
-        // 2. TERMINAL EINGABE VERARBEITEN (Verknüpft die ID mit dem Video)
         function handleTerminalInput(e) {
             if (e.key === 'Enter') {
-                const inputVal = document.getElementById('cmd-input').value.trim();
-                const camId = parseInt(inputVal);
-                
-                // Suche die gewählte ID in der Video-Datenbank
-                const selectedCam = webcamDatabase.find(c => c.id === camId);
-                
-                if (selectedCam) {
-                    playHackerSound(900, 'sine', 0.1);
-                    logTerminal(`Verbindung wird aufgebaut zu ID [${camId}]...`, "warn");
-                    buildStreamTunnel(selectedCam.name, selectedCam.url);
+                const val = parseInt(document.getElementById('cmd-input').value.trim());
+                const cam = webcamDatabase.find(c => c.id === val);
+                if (cam) {
+                    playHackerSound(800); logTerminal(`Verbinde Sektor-ID [${val}]...`, "warn");
+                    buildStreamTunnel(cam.name, cam.url);
                     document.getElementById('cmd-input').value = "";
                 } else {
-                    playHackerSound(250, 'sawtooth', 0.2);
-                    logTerminal(`CRITICAL_ERROR: ID [${inputVal}] ungültig.`, "danger");
+                    playHackerSound(150, 'sawtooth'); logTerminal(`FAIL: ID [${val}] ungültig.`, "danger");
                 }
             }
         }
-
-        // 3. SEKTOR-SCAN (Simuliert IP-Scan und schaltet automatisch ein Video frei)
         function triggerLiveRadarScan() {
-            closeAllLayers();
-            logTerminal("Starte orbitalen Port-Scan... Abfangen von Subnetzen.", "warn");
-            const container = document.getElementById('radar-targets');
-            container.innerHTML = '';
-            
-            for(let i=0; i<3; i++) {
-                setTimeout(() => {
-                    const fakeIP = `10.84.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*254)}`;
-                    logTerminal(`SCANNING SUB-NODE -> IP: ${fakeIP} ... [PROBING]`, "info");
-                }, i * 300);
-            }
-
-            // Nach dem Scan schlägt das Radar automatisch an!
+            closeAllLayers(); playHackerSound(600, 'sine');
+            logTerminal("Scanne Subnetze nach offenen Ports...", "warn");
             setTimeout(() => {
-                const rx = Math.floor(Math.random() * 650) + 180;
-                const ry = Math.floor(Math.random() * 250) + 100;
-                
+                const rx = Math.floor(Math.random() * 600) + 150, ry = Math.floor(Math.random() * 200) + 100;
                 const circle = document.createElementNS("http://w3.org", "circle");
-                circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "10");
-                circle.setAttribute("fill", "none"); circle.setAttribute("stroke", "#ff0055"); circle.setAttribute("stroke-width", "2");
-                container.appendChild(circle);
-
-                // Wählt ein zufälliges Ziel aus der sauberen Video-Datenbank
-                const randomCam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
-
-                logTerminal(`[UPLINK CAPTURED!!] Signal unverschlüsselt abgefangen!`, "danger");
-                logTerminal(`> ROUTE: ${randomCam.name}`, "warn");
-                
-                playHackerSound(800, 'sawtooth', 0.25);
-                buildStreamTunnel(randomCam.name, randomCam.url);
-            }, 1100);
+                circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "10"); circle.setAttribute("fill", "none"); circle.setAttribute("stroke", "#ff0055"); circle.setAttribute("stroke-width", "2");
+                document.getElementById('radar-targets').appendChild(circle);
+                const cam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
+                logTerminal(`[UPLINK HIT!!] Signal abgefangen! -> Sektor: ${cam.name}`, "danger");
+                buildStreamTunnel(cam.name, cam.url);
+            }, 1000);
         }
-
-        // 4. UNBLOCKIERBARER TUNNEL-BUILDER (Spielt NUR das reine Video ab)
         function buildStreamTunnel(title, url) {
-            const windowLayer = document.getElementById('stream-window');
-            const player = document.getElementById('video-player');
-            document.getElementById('stream-title').innerText = `TUNNEL_LINK // ${title.toUpperCase()}`;
-            
-            player.src = url;
-            windowLayer.style.display = 'flex';
-            logTerminal(`Datenstrom synchronisiert. Stream aktiv.`, "info");
+            document.getElementById('stream-window').style.display = 'flex';
+            document.getElementById('video-player').src = url;
+            document.getElementById('stream-title').innerText = `LINK // ${title.toUpperCase()}`;
         }
-
         function closeStreamWindow() {
             document.getElementById('stream-window').style.display = 'none';
             document.getElementById('video-player').src = "";
-            logTerminal("Tunnel manuell geschlossen. Rückkehr zur Radar-Matrix.", "info");
+            logTerminal("Tunnel geschlossen.", "info");
         }
-
-        // 5. TEXT SUCHSYSTEM (LÄNDER STATS)
-        function openSearchLayer() {
-            closeAllLayers();
-            document.getElementById('search-layer').style.display = 'flex';
-            document.getElementById('search-input').focus();
-            filterCountries();
-        }
-
+        function openSearchLayer() { closeAllLayers(); playHackerSound(440); document.getElementById('search-layer').style.display = 'flex'; document.getElementById('search-input').focus(); filterCountries(); }
         function filterCountries() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const resultsBox = document.getElementById('search-results');
-            resultsBox.innerHTML = '';
-
-            if(query.length === 0) {
-                resultsBox.innerHTML = '<div style="color: #444; padding: 10px;">Tippe einen Anfangsbuchstaben (z.B. H, K, D, J)...</div>';
-                return;
-            }
-
-            const filtered = allCountriesCache.filter(c => c.name.toLowerCase().includes(query));
-
-            if(filtered.length === 0) {
-                resultsBox.innerHTML = '<div style="color: #ff0055; padding: 10px;">KEINE PASSENDEN KNOTEN GEFUNDEN.</div>';
-                return;
-            }
-
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const r = document.getElementById('search-results'); r.innerHTML = '';
+            if(q.length === 0) { r.innerHTML = '<div style="color:#444;padding:10px;">Anfangsbuchstaben tippen...</div>'; return; }
+            const filtered = allCountriesCache.filter(c => c.name.toLowerCase().includes(q));
+            if(filtered.length === 0) { r.innerHTML = '<div style="color:#ff0055;padding:10px;">KEINE KNOTEN GEFUNDEN.</div>'; return; }
             filtered.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'search-item';
-                div.innerText = `> NODE: ${c.name.toUpperCase()} [${c.code}]`;
-                div.onclick = () => {
-                    displayTargetData(c);
-                    closeAllLayers();
-                };
-                resultsBox.appendChild(div);
+                const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.name.toUpperCase()}`;
+                d.onclick = () => { logTerminal(`=[${c.code}]= Head: ${c.cap} | Pop: ${c.pop} | Lang: ${c.lang} | Cur: ${c.cur}`, "warn"); closeAllLayers(); };
+                r.appendChild(d);
             });
         }
-
-        function displayTargetData(c) {
-            logTerminal(`======= [ TARGET PACKET: ${c.code} ] =======`, "info");
-            logTerminal(` > KNOTENPUNKT:   ${c.name.toUpperCase()}`);
-            logTerminal(` > HAUPTKNOTEN:   ${c.cap.toUpperCase()}`);
-            logTerminal(` > NETZ-BÜRGER:   ${c.pop}`);
-            logTerminal(` > AMTSSPRACHE:   ${c.lang}`);
-            logTerminal(` > WAHRUNG:       ${c.cur}`);
-            logTerminal(` > STATUS:        Sicher // GRID Verschlüsselung aktiv.`, "warn");
-            logTerminal(`==========================================`, "info");
-        }
-
-        function closeAllLayers() {
-            document.getElementById('webcam-layer').style.display = 'none';
-            document.getElementById('search-layer').style.display = 'none';
-            document.getElementById('terminal-input-container').style.display = 'none';
-            document.getElementById('search-input').value = "";
-            document.getElementById('cmd-input').value = "";
-        }
+        function closeAllLayers() { document.getElementById('search-layer').style.display='none'; document.getElementById('terminal-input-container').style.display='none'; document.getElementById('search-input').value=""; document.getElementById('cmd-input').value=""; }
     </script>
 </body>
 </html>
+     
