@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CENTRAL_CORE_INTERFACE_v6.5</title>
+    <title>NETWORK_CORE_INTERFACE_v7.0</title>
     
     <style>
         body {
-            background-color: #020702;
+            background-color: #010501;
             color: #00ff33;
             font-family: 'Courier New', Courier, monospace;
             margin: 0; padding: 10px;
@@ -41,13 +41,13 @@
 
         @media (max-width: 768px) {
             .container { flex-direction: column; }
-            .panel.left { min-height: 320px !important; height: 45%; }
+            .panel.left { min-height: 280px !important; height: 40%; }
             .panel.right { height: 380px !important; margin-bottom: 20px; }
         }
 
         .panel {
             border: 1px solid #00ff33;
-            background: rgba(0, 12, 0, 0.6);
+            background: rgba(0, 8, 0, 0.7);
             padding: 10px;
             box-shadow: inset 0 0 15px rgba(0, 255, 51, 0.2);
             display: flex; flex-direction: column; box-sizing: border-box;
@@ -68,7 +68,7 @@
         }
 
         button {
-            background: #002200; color: #00ff33; border: 1px solid #00ff33;
+            background: #001500; color: #00ff33; border: 1px solid #00ff33;
             padding: 12px 5px; cursor: pointer;
             font-family: 'Courier New', monospace; font-weight: bold;
             font-size: 0.75rem; text-transform: uppercase;
@@ -80,20 +80,20 @@
         #terminal {
             flex-grow: 1; background: #000; padding: 8px;
             overflow-y: auto; font-size: 0.75rem;
-            border: 1px solid #004400; margin-top: 10px; min-height: 100px;
+            border: 1px solid #003300; margin-top: 10px; min-height: 100px;
         }
 
         /* Das High-Tech Radar & Display-Zentrum */
         #display-master {
             width: 100%; height: 100%; background: #000;
-            position: relative; overflow: hidden; border: 1px solid #004400;
+            position: relative; overflow: hidden; border: 1px solid #003300;
         }
 
         #radar-sweep {
             position: absolute; width: 200%; height: 200%;
             top: -50%; left: -50%;
-            background: conic-gradient(from 0deg, rgba(0,255,51,0.12) 0deg, rgba(0,255,51,0) 90deg);
-            transform-origin: center; animation: sweep 4s linear infinite;
+            background: conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg);
+            transform-origin: center; animation: sweep 3.5s linear infinite;
             pointer-events: none; z-index: 3;
         }
 
@@ -101,8 +101,8 @@
             width: 100%; height: 100%; z-index: 2; position: absolute; top:0; left:0;
         }
 
-        .map-land { fill: none; stroke: #00ff33; stroke-width: 1.2; opacity: 0.65; }
-        .map-grid { fill: none; stroke: #002200; stroke-width: 0.5; }
+        .map-land { fill: none; stroke: #00ff33; stroke-width: 1.5; opacity: 0.75; }
+        .map-grid { fill: none; stroke: #001800; stroke-width: 0.5; }
 
         /* Integriertes Video-Fenster für Webcams */
         #webcam-layer {
@@ -113,13 +113,14 @@
 
         #webcam-layer iframe {
             width: 100%; height: calc(100% - 30px); border: none;
-            filter: invert(0.9) hue-rotate(90deg) contrast(1.2) brightness(0.8);
+            filter: invert(0.9) hue-rotate(90deg) contrast(1.3) brightness(0.7);
         }
 
         .cam-bar {
-            background: #002200; height: 30px; display: flex;
+            background: #001500; height: 30px; display: flex;
             justify-content: space-between; align-items: center;
             padding: 0 10px; font-size: 0.75rem; font-weight: bold;
+            border-bottom: 1px solid #00ff33;
         }
 
         @keyframes sweep {
@@ -130,7 +131,7 @@
 <body>
 
     <header>
-        <div>[NODE: MAIN_FRAME_v6.5] // SYSTEM: ONLINE</div>
+        <div>[SYSTEM: MAIN_FRAME_ONLINE] // VER_7.0</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
 
@@ -146,14 +147,14 @@
             </div>
             
             <div id="terminal">
-                <div style="color: #666;">[SYSTEM] Core-Grid initialisiert. Keine Blocker aktiv.</div>
-                <div style="color: #00ff33;">[SYSTEM] Bereit für orbitalen Uplink.</div>
+                <div style="color: #00ff33;">[SYSTEM] Zentraler Systemkern v7.0 gestartet.</div>
+                <div style="color: #00ff33;">[SYSTEM] Alle Sensor-Grids einsatzbereit.</div>
             </div>
         </div>
 
         <!-- RECHTES HAUPTDISPLAY -->
         <div class="panel right">
-            <div class="panel-title">> CORE_MATRIX_DISPLAY (LIVE)</div>
+            <div class="panel-title">> VECTOR_RADAR_DISPLAY</div>
             <div id="display-master">
                 
                 <!-- Radar-Strahl -->
@@ -162,17 +163,16 @@
                 <!-- Hacker-Videolayer für freie, legale Webcams -->
                 <div id="webcam-layer">
                     <div class="cam-bar">
-                        <span id="cam-title">LIVE_FEED // REICHSTAG_BERLIN</span>
+                        <span id="cam-title">LIVE_FEED // TOKIO_SHIBUYA</span>
                         <span style="color:#ff0055; cursor:pointer;" onclick="closeWebcam()">[X] CLOSE</span>
                     </div>
-                    <!-- Wir nutzen einen legalen, freien YouTube-Livestream einer Stadt-Kamera über ein datenschutzfreundliches Einbettungsfenster -->
                     <iframe id="cam-frame" src=""></iframe>
                 </div>
                 
                 <!-- Vektor-Weltkarte -->
                 <svg class="vector-map" viewBox="0 0 1000 500">
                     <path class="map-grid" d="M0,100 L1000,100 M0,200 L1000,200 M0,300 L1000,300 M0,400 L1000,400 M100,0 L100,500 M200,0 L200,500 M300,0 L300,500 M400,0 L400,500 M500,0 L500,500 M600,0 L600,500 M700,0 L700,500 M800,0 L800,500 M900,0 L900,500" />
-                    <!-- Konturen -->
+                    <!-- Konturen der Weltkarte -->
                     <path class="map-land" d="M150,80 L220,100 L250,150 L200,180 L260,230 L220,280 L240,320 L270,350 L250,450 L220,480 L200,420 L210,320 L160,270 L140,200 L110,140 L100,90 Z" />
                     <path class="map-land" d="M450,100 L550,70 L700,60 L850,90 L900,150 L800,200 L750,180 L650,220 L580,180 L520,140 L460,180 L440,250 L480,300 L550,330 L520,400 L480,450 L450,420 L400,350 L380,250 L420,200 L400,150 Z" />
                     <path class="map-land" d="M780,360 L840,350 L880,390 L850,440 L790,420 Z" />
@@ -213,52 +213,51 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // 1. FUNKTION: RADAR-SCAN (Blinkende Ortungspunkte)
+        // 1. RADAR SCAN: Setzt ohne Ausnahmen Punkte auf den Schirm
         function triggerRadarScan() {
-            logTerminal("Sektor-Scan aktiv... Suche aktive Uplinks...", "warn");
+            logTerminal("Analysiere Satelliten-Datenströme...", "warn");
             const container = document.getElementById('radar-targets');
             container.innerHTML = '';
             for (let i = 0; i < 3; i++) {
                 setTimeout(() => {
-                    const rx = Math.floor(Math.random() * 700) + 150;
-                    const ry = Math.floor(Math.random() * 300) + 80;
+                    const rx = Math.floor(Math.random() * 650) + 180;
+                    const ry = Math.floor(Math.random() * 250) + 100;
                     const circle = document.createElementNS("http://w3.org", "circle");
-                    circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "6");
+                    circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "7");
                     circle.setAttribute("fill", "#00ff33");
                     const anim = document.createElementNS("http://w3.org", "animate");
                     anim.setAttribute("attributeName", "opacity"); anim.setAttribute("values", "1;0;1");
-                    anim.setAttribute("dur", "1s"); anim.setAttribute("repeatCount", "indefinite");
+                    anim.setAttribute("dur", "0.8s"); anim.setAttribute("repeatCount", "indefinite");
                     circle.appendChild(anim); container.appendChild(circle);
-                    logTerminal(`UPLINK_LOCATED -> Sektor_Grid: [X:${rx} | Y:${ry}]`, "info");
+                    logTerminal(`STATION_FOUND -> Koordinaten-Grid: [X:${rx} | Y:${ry}]`, "info");
                     playHackerSound(700, 'sine', 0.05);
                 }, i * 400);
             }
         }
 
-        // 2. FUNKTION: ECHTE LÄNDER-DATEN (Über freie REST Countries API)
-        const countries = ['germany', 'japan', 'iceland', 'canada', 'brazil', 'australia'];
+        // 2. LÄNDER STATS: Schnelle, direkt eingebaute Datenbank (Verhindert Internet-Blockaden komplett)
+        const countryDB = [
+            { name: "GERMANY", cap: "Berlin", pop: "83.200.000", status: "STABIL // KI-Core aktiv" },
+            { name: "JAPAN", cap: "Tokio", pop: "125.100.000", status: "UPLINK_READY // High-Tech Netz" },
+            { name: "ICELAND", cap: "Reykjavik", pop: "372.000", status: "SATELLITE_NODE // Kaltes Sektor-Grid" },
+            { name: "USA", cap: "Washington D.C.", pop: "333.000.000", status: "OVERWATCH // Hohe Serverlast" },
+            { name: "AUSTRALIA", cap: "Canberra", pop: "25.600.000", status: "DEEP_SPACE_LINK // Aktiv" }
+        ];
+
         function fetchCountryStats() {
-            const randomCountry = countries[Math.floor(Math.random() * countries.length)];
-            logTerminal(`Frage globalen Datenbank-Knoten ab: [${randomCountry.toUpperCase()}]...`, "warn");
-            
-            fetch(`https://restcountries.com{randomCountry}`)
-                .then(res => res.json())
-                .then(data => {
-                    const c = data[0];
-                    logTerminal(`UPLINK ERFOLGREICH: ${c.name.common.toUpperCase()}`, "info");
-                    logTerminal(`> Hauptstadt: ${c.capital ? c.capital[0] : 'Keine'}`);
-                    logTerminal(`> Population: ${c.population.toLocaleString()} Bürger`);
-                    logTerminal(`> Region-Net: Sektor ${c.region} (${c.subregion})`);
-                    logTerminal(`> Status: Stabil // KI-Gefährdung: Niedrig`, "warn");
-                    playHackerSound(600, 'triangle', 0.15);
-                })
-                .catch(() => logTerminal("FEHLER: Datenbank-Knoten antwortet nicht. Timeout.", "danger"));
+            const c = countryDB[Math.floor(Math.random() * countryDB.length)];
+            logTerminal(`Frage globalen Datenbank-Knoten ab...`, "warn");
+            setTimeout(() => {
+                logTerminal(`UPLINK ERFOLGREICH: ${c.name}`, "info");
+                logTerminal(`> Hauptknoten: ${c.cap}`);
+                logTerminal(`> Daten-Bürger: ${c.pop}`);
+                logTerminal(`> Netzwerk-Status: ${c.status}`, "warn");
+                playHackerSound(600, 'triangle', 0.15);
+            }, 300);
         }
 
-        // 3. FUNKTION: ECHTE ÖFFENTLICHE WEBCAMS (Mit Matrix-Grafikfilter!)
-        // Wir nutzen freie, dauerhafte Live-Streams von weltweiten Städten
+        // 3. ECHTE LIVE WEBCAMS (Öffentliche, freie Einbettungen)
         const camFeeds = [
-            { title: "LIVE_FEED // BERLIN_REICHSTAG", url: "https://youtube-nocookie.com" },
             { title: "LIVE_FEED // TOKIO_SHIBUYA", url: "https://youtube-nocookie.com" },
             { title: "LIVE_FEED // NEW_YORK_TIMES_SQUARE", url: "https://youtube-nocookie.com" }
         ];
@@ -268,15 +267,13 @@
             const layer = document.getElementById('webcam-layer');
             const frame = document.getElementById('cam-frame');
             const title = document.getElementById('cam-title');
-            
             const feed = camFeeds[currentCamIndex];
+            
             title.innerText = feed.title;
             frame.src = feed.url;
             layer.style.display = 'flex';
             
-            logTerminal(`Schalte Video-Matrix auf: ${feed.title}`, "info");
-            
-            // Rotiere Feeds für den nächsten Klick
+            logTerminal(`Verbinde Video-Matrix: ${feed.title}`, "info");
             currentCamIndex = (currentCamIndex + 1) % camFeeds.length;
         }
 
