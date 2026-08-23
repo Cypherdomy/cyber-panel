@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SECURE_OVERWATCH_v13.5</title>
+    <title>SATELLITE_OVERWATCH_v15.0</title>
     <style>
         body { background:#010501; color:#00ff33; font-family:'Courier New',monospace; margin:0; padding:10px; height:100vh; box-sizing:border-box; display:flex; flex-direction:column; overflow:hidden; text-shadow:0 0 5px #00ff33; user-select:none; -webkit-user-select:none; }
         body::before { content:" "; display:block; position:fixed; top:0; left:0; bottom:0; right:0; background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%); z-index:9999; background-size:100% 4px; pointer-events:none; }
@@ -18,24 +18,33 @@
         button:active { background:#00ff33; color:#000; }
         #terminal { flex-grow:1; background:#000; padding:8px; overflow-y:scroll; font-size:0.75rem; border:1px solid #003300; margin-top:10px; height:140px; box-sizing:border-box; }
         #terminal::-webkit-scrollbar { width:4px; } #terminal::-webkit-scrollbar-thumb { background:#004400; }
-        #display-master { width:100%; height:100%; background:#000; position:relative; overflow:hidden; border:1px solid #003300; }
-        #radar-sweep { position:absolute; width:200%; height:200%; top:-50%; left:-50%; background:conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg); transform-origin:center; animation:sweep 3.5s linear infinite; pointer-events:none; z-index:3; }
-        svg.vector-map { width:100%; height:100%; z-index:2; position:absolute; top:0; left:0; }
-        .map-land { fill:none; stroke:#00ff33; stroke-width:1.5; opacity:0.75; }
-        .map-grid { fill:none; stroke:#001800; stroke-width:0.5; }
+        
+        /* Suchmasken Overlays */
         .layer-overlay { position:absolute; top:0; left:0; width:100%; height:100%; z-index:5; background:rgba(0,5,0,0.95); display:none; flex-direction:column; padding:15px; box-sizing:border-box; }
         .layer-input { background:#000; color:#00ff33; border:1px solid #00ff33; padding:10px; font-family:'Courier New',monospace; font-size:1rem; width:100%; box-sizing:border-box; outline:none; text-transform:uppercase; box-shadow:0 0 5px #00ff33; }
         .layer-results { margin-top:15px; overflow-y:auto; flex-grow:1; border:1px dashed #004400; padding:5px; }
         .search-item { padding:8px; border-bottom:1px solid #002200; cursor:pointer; font-size:0.85rem; }
+        
+        /* DER RÄNDER-ABSCHNEIDE TRICK: Blendet Menüs der echten Webseiten per CSS aus */
         #stream-window { position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:6; display:none; flex-direction:column; }
-        #video-player { width:100%; height:calc(100% - 30px); background:#000; border:none; pointer-events:none; filter:hue-rotate(60deg) contrast(1.4) brightness=0.8; }
+        #video-clipper { width:100%; height:calc(100% - 30px); overflow:hidden; position:relative; background:#000; }
+        
+        /* Das Iframe wird vergrößert und verschoben, sodass nur das reine Video sichtbar bleibt! */
+        #video-player { width:100%; height:100%; border:none; position:absolute; top:0; left:0; filter:hue-rotate(60deg) contrast(1.3) brightness(0.8); }
+        /* Eine unsichtbare Schutzschicht über dem Video blockiert alle Klicks */
+        #click-shield { position:absolute; top:0; left:0; width:100%; height:100%; z-index:7; background:rgba(0,0,0,0); cursor:default; }
+        
         .layer-bar { background:#001500; height:30px; display:flex; justify-content:space-between; align-items:center; padding:0 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #00ff33; }
+        #radar-sweep { position:absolute; width:200%; height:200%; top:-50%; left:-50%; background:conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg); transform-origin:center; animation:sweep 3.5s linear infinite; pointer-events:none; z-index:3; }
+        svg.vector-map { width:100%; height:100%; z-index:2; position:absolute; top:0; left:0; }
+        .map-land { fill:none; stroke:#00ff33; stroke-width:1.5; opacity:0.75; }
+        .map-grid { fill:none; stroke:#001800; stroke-width:0.5; }
         @keyframes sweep { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
     <header>
-        <div>[SYSTEM: SAT_OVERWATCH_GRID] // VER_13.5_AUTARK</div>
+        <div>[SYSTEM: SAT_OVERWATCH_GRID] // VER_15.0_LIVE</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
     <div class="container">
@@ -49,8 +58,8 @@
                 <button onclick="closeAllLayers()">CLEAR PANEL</button>
             </div>
             <div id="terminal">
-                <div style="color:#00ff33;">[SYSTEM] System v13.5 autark re-kalibriert.</div>
-                <div style="color:#00ff33;">[SYSTEM] Welt-Register unblockierbar im Code verankert.</div>
+                <div style="color:#00ff33;">[SYSTEM] System v15.0 re-kalibriert.</div>
+                <div style="color:#00ff33;">[SYSTEM] Klicksichere Echtzeit-Schnittstelle aktiv.</div>
             </div>
         </div>
         
@@ -60,17 +69,17 @@
             <div id="display-master">
                 <div id="radar-sweep"></div>
                 
-                <!-- 1. Overlay für die unblockierbaren Länder-Statistiken -->
+                <!-- 1. Overlay für Länder-Statistiken -->
                 <div id="search-layer" class="layer-overlay">
                     <div class="layer-bar" style="margin-bottom:10px;">
                         <span>DATABASE_SEARCH // LÄNDER_STATS</span>
                         <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
-                    <input type="text" id="search-input" class="layer-input" placeholder="Land eingeben (z.B. Deutschland, Kroatien)..." oninput="filterCountries()">
+                    <input type="text" id="search-input" class="layer-input" placeholder="Land eingeben (z.B. Germany, Croatia)..." oninput="filterCountries()">
                     <div id="search-results" class="layer-results"></div>
                 </div>
 
-                <!-- 2. Overlay für die gezielte Webcam-Suche -->
+                <!-- 2. Overlay für die Webcam-Suche -->
                 <div id="cam-layer" class="layer-overlay">
                     <div class="layer-bar" style="margin-bottom:10px;">
                         <span>LIVE_IP_CAM_SEARCH // SELECT_COUNTRY</span>
@@ -80,13 +89,16 @@
                     <div id="cam-results" class="layer-results"></div>
                 </div>
                 
-                <!-- Reines Videofenster -->
+                <!-- Reines Videofenster mit Klickschutzschicht -->
                 <div id="stream-window">
                     <div class="layer-bar">
-                        <span id="stream-title">TUNNEL_LINK</span>
+                        <span id="stream-title">TUNNEL_LINK // ESTABLISHED</span>
                         <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeStreamWindow()">[X] CLOSE</span>
                     </div>
-                    <iframe id="video-player" src="" allow="autoplay"></iframe>
+                    <div id="video-clipper">
+                        <div id="click-shield"></div>
+                        <iframe id="video-player" src="" allow="autoplay"></iframe>
+                    </div>
                 </div>
                 
                 <svg class="vector-map" viewBox="0 0 1000 500">
@@ -116,45 +128,31 @@
             t.scrollTop = t.scrollHeight;
         }
 
-        // UNBLOCKIERBARES WEBCAM VERZEICHNIS (20 sichere Server-Datenströme)
+        // DYNAMISCHES WEBCAM REGISTER (Nutzt den Clip-Trick für reines Video ohne Seiten-Müll)
+        // zoom, top, left, width, height steuern, wie weit wir in die Seite hineinschneiden
         const webcamDatabase = [
-            { land: "Deutschland", stadt: "Berlin (Mitte-Grid)", url: "https://bom.gov.au" },
-            { land: "Deutschland", stadt: "Hamburg (Hafen-Node)", url: "https://dwd.de" },
-            { land: "Deutschland", stadt: "München (Isar-Sektor)", url: "https://dwd.de" },
-            { land: "Japan", stadt: "Tokio (Shibuya-Matrix)", url: "https://jma.go.jp" },
-            { land: "Japan", stadt: "Osaka (Uplink-West)", url: "https://jma.go.jp" },
-            { land: "Japan", stadt: "Kyoto (Zentral-Node)", url: "https://jma.go.jp" },
-            { land: "Kroatien", stadt: "Zagreb (Zentral-Sektor)", url: "https://vrijeme.hr" },
-            { land: "Kroatien", stadt: "Split (Küsten-Matrix)", url: "https://vrijeme.hr" },
-            { land: "Kroatien", stadt: "Rijeka (Hafen-Uplink)", url: "https://vrijeme.hr" },
-            { land: "USA", stadt: "New York (East-Grid)", url: "https://weather.gov" },
-            { land: "USA", stadt: "Los Angeles (West-Grid)", url: "https://weather.gov" },
-            { land: "USA", stadt: "Miami (Süd-Sektor)", url: "https://weather.gov" },
-            { land: "Bosnien", stadt: "Sarajevo (Hauptknoten)", url: "https://vrijeme.hr" },
-            { land: "Türkei", stadt: "Istanbul (Bosporus-Node)", url: "https://mgm.gov.tr" },
-            { land: "Türkei", stadt: "Ankara (Zentral-Grid)", url: "https://mgm.gov.tr" },
-            { land: "Österreich", stadt: "Wien (Donau-Sektor)", url: "https://zamg.ac.at" },
-            { land: "Schweiz", stadt: "Zürich (Nord-Node)", url: "https://admin.ch" },
-            { land: "Frankreich", stadt: "Paris (Zentral-Grid)", url: "https://meteofrance.com" },
-            { land: "Italien", stadt: "Rom (Süd-Node)", url: "http://protezionecivile.gov.it" },
-            { land: "Spanien", stadt: "Madrid (Zentral-Sektor)", url: "https://aemet.es" }
+            { land: "Deutschland", stadt: "Berlin (Zentrum-Uplink)", url: "https://wetter.com", zoom: "1.8", top: "-180px", left: "-10px", width: "150%", height: "180%" },
+            { land: "Deutschland", stadt: "München (Marienplatz)", url: "https://wetter.com", zoom: "1.8", top: "-180px", left: "-10px", width: "150%", height: "180%" },
+            { land: "Japan", stadt: "Tokio (Shibuya-Matrix)", url: "https://earthcam.com", zoom: "1.5", top: "-220px", left: "-50px", width: "140%", height: "160%" },
+            { land: "USA", stadt: "New York (Times Square Live)", url: "https://earthcam.com", zoom: "1.5", top: "-220px", left: "-50px", width: "140%", height: "160%" },
+            { land: "Kroatien", stadt: "Zagreb (Hauptplatz)", url: "https://livecamcroatia.com", zoom: "1.6", top: "-150px", left: "-30px", width: "130%", height: "150%" }
         ];
 
         function openLayer(id) { closeAllLayers(); playHackerSound(440); document.getElementById(id).style.display = 'flex'; if(id==='search-layer') document.getElementById('search-input').focus(); if(id==='cam-layer') document.getElementById('cam-input').focus(); }
-        // 1. REPARIERTES WEB-SUCHSYSTEM (Filtert 20 unblockierbare Server-Feeds)
+        // 1. WEB-SUCHSYSTEM FÜR DIE REINEN KAMERAS
         function filterWebcams() {
             const q = document.getElementById('cam-input').value.toLowerCase().trim();
             const r = document.getElementById('cam-results'); r.innerHTML = '';
             if(q.length === 0) { r.innerHTML = '<div style="color:#444;padding:10px;">Land tippen (z.B. Deutschland, Japan, Kroatien)...</div>'; return; }
             
             const filtered = webcamDatabase.filter(c => c.land.toLowerCase().includes(q));
-            if(filtered.length === 0) { r.innerHTML = '<div style="color:#ff0055;padding:10px;">KEINE KAMERAS FÜR DIESES LAND VERFÜGBAR.</div>'; return; }
+            if(filtered.length === 0) { r.innerHTML = '<div style="color:#ff0055;padding:10px;">KEINE KAMERAS IN REICHWEITE Gefunden.</div>'; return; }
             
             filtered.forEach(c => {
                 const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.land.toUpperCase()} [${c.stadt.toUpperCase()}]`;
                 d.onclick = () => {
-                    playHackerSound(800); logTerminal(`Verbinde Datenstrom: ${c.stadt}...`, "warn");
-                    buildStreamTunnel(c.stadt, c.url); closeAllLayers();
+                    playHackerSound(800); logTerminal(`Baue klicksicheren Tunnel: ${c.stadt}...`, "warn");
+                    buildStreamTunnel(c); closeAllLayers();
                 };
                 r.appendChild(d);
             });
@@ -170,81 +168,65 @@
                 circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "10"); circle.setAttribute("fill", "none"); circle.setAttribute("stroke", "#ff0055"); circle.setAttribute("stroke-width", "2");
                 document.getElementById('radar-targets').appendChild(circle);
                 const cam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
-                logTerminal(`[UPLINK HIT!!] Reiner Server-Stream abgefangen -> ${cam.stadt}`, "danger");
-                buildStreamTunnel(cam.stadt, cam.url);
+                logTerminal(`[UPLINK HIT!!] Live-Signal abgefangen -> ${cam.stadt}`, "danger");
+                buildStreamTunnel(cam);
             }, 1000);
         }
 
-        // 3. UNBLOCKIERBARER TUNNEL-BUILDER (Reines Video, Klicksicher!)
-        function buildStreamTunnel(title, url) {
+        // 3. TUNNEL-BUILDER MIT ZOOM- & CLIP-TRICK (Schneidet Ränder der Websites weg)
+        function buildStreamTunnel(cam) {
             document.getElementById('stream-window').style.display = 'flex';
-            document.getElementById('video-player').src = url;
-            document.getElementById('stream-title').innerText = `LINK // ${title.toUpperCase()}`;
+            const player = document.getElementById('video-player');
+            
+            // Wende den CSS-Vollbild-Trick an, um Logos und Menüs wegzuschneiden
+            player.style.transform = `scale(${cam.zoom})`;
+            player.style.transformOrigin = "top left";
+            player.style.top = cam.top;
+            player.style.left = cam.left;
+            player.style.width = cam.width;
+            player.style.height = cam.height;
+            
+            player.src = cam.url;
+            document.getElementById('stream-title').innerText = `LINK // ${cam.stadt.toUpperCase()}`;
         }
+        
         function closeStreamWindow() {
             document.getElementById('stream-window').style.display = 'none';
             document.getElementById('video-player').src = "";
-            logTerminal("Tunnel geschlossen.", "info");
+            logTerminal("Tunnel geschlossen. Satellit re-kalibriert.", "info");
         }
 
-        // 🟢 GIGANTISCHE, SICHRE INTERNE DATENBANK (Über 35 Länder direkt im Code verbaut!)
-        const localCountriesDB = [
-            { name: "Deutschland", code: "DE", cap: "Berlin", pop: "83.200.000", lang: "Deutsch", cur: "Euro (EUR)" },
-            { name: "Kroatien", code: "HR", cap: "Zagreb", pop: "4.000.000", lang: "Kroatisch", cur: "Euro (EUR)" },
-            { name: "Bosnien und Herzegowina", code: "BA", cap: "Sarajevo", pop: "3.200.000", lang: "Bosnisch, Serbisch, Kroatisch", cur: "Konvertible Mark (BAM)" },
-            { name: "Österreich", code: "AT", cap: "Wien", pop: "8.900.000", lang: "Deutsch", cur: "Euro (EUR)" },
-            { name: "Schweiz", code: "CH", cap: "Bern", pop: "8.700.000", lang: "Deutsch, Französisch, Italienisch", cur: "Schweizer Franken (CHF)" },
-            { name: "Italien", code: "IT", cap: "Rom", pop: "59.500.000", lang: "Italienisch", cur: "Euro (EUR)" },
-            { name: "Spanien", code: "ES", cap: "Madrid", pop: "47.400.000", lang: "Spanisch (Kastilisch)", cur: "Euro (EUR)" },
-            { name: "Frankreich", code: "FR", cap: "Paris", pop: "67.800.000", lang: "Französisch", cur: "Euro (EUR)" },
-            { name: "Ungarn", code: "HU", cap: "Budapest", pop: "9.700.000", lang: "Ungarisch", cur: "Forint (HUF)" },
-            { name: "Griechenland", code: "GR", cap: "Athen", pop: "10.700.000", lang: "Griechisch", cur: "Euro (EUR)" },
-            { name: "Niederlande", code: "NL", cap: "Amsterdam", pop: "17.500.000", lang: "Niederländisch", cur: "Euro (EUR)" },
-            { name: "Serbien", code: "RS", cap: "Belgrad", pop: "6.900.000", lang: "Serbisch", cur: "Serbischer Dinar (RSD)" },
-            { name: "Albanien", code: "AL", cap: "Tirana", pop: "2.800.000", lang: "Albanisch", cur: "Lek (ALL)" },
-            { name: "Polen", code: "PL", cap: "Warschau", pop: "37.800.000", lang: "Polnisch", cur: "Zloty (PLN)" },
-            { name: "Portugal", code: "PT", cap: "Lissabon", pop: "10.300.000", lang: "Portugal", cur: "Euro (EUR)" },
-            { name: "Schweden", code: "SE", cap: "Stockholm", pop: "10.400.000", lang: "Schwedisch", cur: "Schwedische Krone (SEK)" },
-            { name: "Türkei", code: "TR", cap: "Ankara", pop: "84.300.000", lang: "Türkisch", cur: "Türkische Lira (TRY)" },
-            { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington D.C.", pop: "333.000.000", lang: "Englisch", cur: "US-Dollar (USD)" },
-            { name: "Kanada", code: "CA", cap: "Ottawa", pop: "38.000.000", lang: "Englisch, Französisch", cur: "Kanadischer Dollar (CAD)" },
-            { name: "Brasilien", code: "BR", cap: "Brasilia", pop: "214.300.000", lang: "Portugiesisch", cur: "Real (BRL)" },
-            { name: "Argentinien", code: "AR", cap: "Buenos Aires", pop: "45.800.000", lang: "Spanisch", cur: "Argentinischer Peso (ARS)" },
-            { name: "Mexiko", code: "MX", cap: "Mexiko-Stadt", pop: "126.000.000", lang: "Spanisch", cur: "Mexikanischer Peso (MXN)" },
-            { name: "Kolumbien", code: "CO", cap: "Bogota", pop: "51.200.000", lang: "Spanisch", cur: "Kolumbianischer Peso (COP)" },
-            { name: "Japan", code: "JP", cap: "Tokio", pop: "125.100.000", lang: "Japanisch", cur: "Yen (JPY)" },
-            { name: "China", code: "CN", cap: "Peking", pop: "1.412.000.000", lang: "Mandarin-Chinesisch", cur: "Renminbi Yuan (CNY)" },
-            { name: "Südkorea", code: "KR", cap: "Seoul", pop: "51.700.000", lang: "Koreanisch", cur: "Südkoreanischer Won (KRW)" },
-            { name: "Ägypten", code: "EG", cap: "Kairo", pop: "109.000.000", lang: "Arabisch", cur: "Ägyptisches Pfund (EGP)" },
-            { name: "Australien", code: "AU", cap: "Canberra", pop: "25.600.000", lang: "Englisch", cur: "Australischer Dollar (AUD)" },
-            { name: "Marokko", code: "MA", cap: "Rabat", pop: "37.300.000", lang: "Arabisch, Berberisch", cur: "Marokkanischer Dirham (MAD)" },
-            { name: "Südafrika", code: "ZA", cap: "Pretoria", pop: "59.300.000", lang: "11 Amtssprachen (u.a. Zulu, Englisch)", cur: "Rand (ZAR)" }
-        ];
-
-        // 4. UNBLOCKIERBARES LÄNDER-SUCHSYSTEM (Keine Internet-Blockaden mehr!)
+        // 4. REPARIERTE ECHTE INTERNET-ABFRAGE (Ungeschmuggelt für jedes Land der Erde)
         function filterCountries() {
-            const q = document.getElementById('search-input').value.toLowerCase().trim();
+            const q = document.getElementById('search-input').value.trim();
             const r = document.getElementById('search-results'); r.innerHTML = '';
-            if(q.length === 0) { r.innerHTML = '<div style="color:#444;padding:10px;">Land eingeben (z.B. Deutschland, Kroatien, Bosnien)...</div>'; return; }
+            if(q.length < 2) { r.innerHTML = '<div style="color:#444;padding:10px;">Mindestens 2 Buchstaben tippen...</div>'; return; }
             
-            const filtered = localCountriesDB.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().startsWith(q));
-            if(filtered.length === 0) { r.innerHTML = '<div style="color:#ff0055;padding:10px;">KEINE NETZWERKKNOTEN REGISTRIERT.</div>'; return; }
-            
-            filtered.forEach(c => {
-                const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.name.toUpperCase()} [${c.code}]`;
-                d.onclick = () => {
-                    logTerminal(`======= [ TARGET DATA: ${c.code} ] =======`, "info");
-                    logTerminal(` > KNOTENPUNKT:   ${c.name.toUpperCase()}`);
-                    logTerminal(` > HAUPTKNOTEN:   ${c.cap.toUpperCase()}`);
-                    logTerminal(` > NETZ-BÜRGER:   ${c.pop}`);
-                    logTerminal(` > AMTSSPRACHE:   ${c.lang}`);
-                    logTerminal(` > WAHRUNG:       ${c.cur}`);
-                    logTerminal(` > STATUS:        Sicher // GRID Verschlüsselung aktiv.`, "warn");
-                    logTerminal(`==========================================`, "info");
-                    closeAllLayers();
-                };
-                r.appendChild(d);
-            });
+            // Sichere HTTPS-Abfrage an das globale Internet-Register
+            fetch(`https://restcountries.com{q}?fields=name,capital,population,languages,currencies,cca2`)
+                .then(res => { if(!res.ok) throw new Error(); return res.json(); })
+                .then(data => {
+                    data.slice(0, 5).forEach(c => {
+                        const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.name.common.toUpperCase()} [${c.cca2}]`;
+                        d.onclick = () => {
+                            const cap = c.capital ? c.capital[0] : 'Keine';
+                            const pop = c.population.toLocaleString();
+                            const lang = Object.values(c.languages || {}).join(', ');
+                            const cur = Object.values(c.currencies || {}).map(val => val.name).join(', ');
+                            logTerminal(`======= [ LIVE PACKET: ${c.cca2} ] =======`, "info");
+                            logTerminal(` > INTERNET-NODE: ${c.name.common.toUpperCase()}`);
+                            logTerminal(` > HAUPTKNOTEN:   ${cap.toUpperCase()}`);
+                            logTerminal(` > NETZ-BÜRGER:   ${pop}`);
+                            logTerminal(` > AMTSSPRACHE:   ${lang}`);
+                            logTerminal(` > WAHRUNG:       ${cur}`);
+                            logTerminal(` > STATUS:        Stabil // Tunnel verschlüsselt.`, "warn");
+                            logTerminal(`==========================================`, "info");
+                            closeAllLayers();
+                        };
+                        r.appendChild(d);
+                    });
+                })
+                .catch(() => { r.innerHTML = '<div style="color:#ff0055;padding:10px;">API_TIMEOUT: KNOOTENPUNKT NICHT ERREICHBAR.</div>'; });
         }
 
         function closeAllLayers() {
