@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SATELLITE_OVERWATCH_v18.0</title>
-    <!-- Wir laden das offizielle, freie Open-Source Streaming-Tool (HLS.js) für unblockierbare Handystreams -->
-    <script src="https://jsdelivr.net"></script>
+    <title>SATELLITE_OVERWATCH_v19.0</title>
     <style>
         body { background:#010501; color:#00ff33; font-family:'Courier New',monospace; margin:0; padding:10px; height:100vh; box-sizing:border-box; display:flex; flex-direction:column; overflow:hidden; text-shadow:0 0 5px #00ff33; user-select:none; -webkit-user-select:none; }
         body::before { content:" "; display:block; position:fixed; top:0; left:0; bottom:0; right:0; background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%); z-index:9999; background-size:100% 4px; pointer-events:none; }
@@ -26,10 +24,9 @@
         .layer-results { margin-top:15px; overflow-y:auto; flex-grow:1; border:1px dashed #004400; padding:5px; }
         .search-item { padding:8px; border-bottom:1px solid #002200; cursor:pointer; font-size:0.85rem; }
         
-        /* REINES STREAM-FENSTER FÜR DIE ECHTEN FILME (Klicksicher & Vollbild) */
         #stream-window { position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:6; display:none; flex-direction:column; }
-        #video-clipper { width:100%; height:calc(100% - 30px); position:relative; background:#000; }
-        #video-player { width:100%; height:100%; object-fit:cover; border:none; filter:hue-rotate(60deg) contrast(1.3) brightness(0.8); }
+        #video-clipper { width:100%; height:calc(100% - 30px); position:relative; overflow:hidden; background:#000; }
+        #video-player { width:100%; height:100%; border:none; position:absolute; top:0; left:0; filter:hue-rotate(60deg) contrast(1.3) brightness(0.8); }
         #click-shield { position:absolute; top:0; left:0; width:100%; height:100%; z-index:7; background:rgba(0,0,0,0); }
         .layer-bar { background:#001500; height:30px; display:flex; justify-content:space-between; align-items:center; padding:0 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #00ff33; }
         
@@ -42,8 +39,8 @@
 </head>
 <body>
     <header>
-        <div>[SYS_STATUS: ACTIVE] // OVERWATCH_GRID_ONLINE // MODE: DIRECT_STREAM</div>
-        <!-- Die neue, perfekt sichtbare deutsche Live-Uhrzeit -->
+        <div>[SYS_STATUS: ACTIVE] // OVERWATCH_GRID_ONLINE // GATEWAY: ENABLED</div>
+        <!-- Die unblockierbare deutsche Live-Uhrzeit -->
         <div id="live-clock" style="color: #ffb000; font-weight: bold; letter-spacing: 1px;">00.00.0000 - 00:00:00</div>
     </header>
     <div class="container">
@@ -57,16 +54,16 @@
                 <button onclick="closeAllLayers()">CLEAR PANEL</button>
             </div>
             <div id="terminal">
-                <div style="color:#00ff33;">[SYSTEM] System v18.0 unblockierbar initialisiert.</div>
-                <div style="color:#00ff33;">[SYSTEM] HLS-Streaming-Engine geladen. YouTube restlos entfernt.</div>
+                <div style="color:#00ff33;">[SYSTEM] System v19.0 wird synchronisiert...</div>
+                <div style="color:#00ff33;">[SYSTEM] Verwende unblockierbare HTTPS-Media-Gateways.</div>
             </div>
         </div>
         
-        <!-- RECHTES HAUPTDISPLAY (DER MATRIX-RADAR-KÄFIG) -->
+        <!-- RECHTES HAUPTDISPLAY -->
         <div class="panel right">
             <div class="panel-title">> VISUAL_CORE_DISPLAY</div>
             <div id="display-master">
-                <!-- Der rotierende Strahl ist jetzt krisensicher hier eingesperrt -->
+                <!-- Das fixierte Radar-Element im rechten Monitor -->
                 <div id="radar-sweep"></div>
                 
                 <!-- 1. Overlay für die unblockierbaren Länder-Statistiken -->
@@ -85,7 +82,7 @@
                         <span>LIVE_IP_CAM_SEARCH // SELECT_COUNTRY</span>
                         <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
-                    <input type="text" id="cam-input" class="layer-input" placeholder="Nach Land suchen (z.B. Deutschland, USA, Japan)..." oninput="filterWebcams()">
+                    <input type="text" id="cam-input" class="layer-input" placeholder="Nach Land suchen (z.B. Deutschland, USA, Japan, Kroatien)..." oninput="filterWebcams()">
                     <div id="cam-results" class="layer-results"></div>
                 </div>
                 
@@ -97,8 +94,7 @@
                     </div>
                     <div id="video-clipper">
                         <div id="click-shield"></div>
-                        <!-- Das reine HTML5 Video-Element, gesteuert durch die HLS-Engine -->
-                        <video id="video-player" autoplay loop muted playsinline></video>
+                        <iframe id="video-player" src="" allow="autoplay"></iframe>
                     </div>
                 </div>
                 
@@ -137,14 +133,14 @@
             t.scrollTop = t.scrollHeight;
         }
 
-        // UNBLOCKIERBARE LIVE STREAM VERZEICHNISSE (Nackte Streaming-Server .m3u8 ohne Cookie-Müll)
+        // UNBLOCKIERBARES MEDIEN-REGISTER: Offene HTTPS-Gateways (Keine Cookies, Zoom-optimiert)
         const webcamDatabase = [
-            { land: "Kroatien", stadt: "Dubrovnik (Hauptstraße Stradun Live)", url: "https://livecamcroatia.com" },
-            { land: "Kroatien", stadt: "Split (Küsten-Promenade Riva Live)", url: "https://livecamcroatia.com" },
-            { land: "Kroatien", stadt: "Zagreb (Ban-Jelacic-Square Live)", url: "https://livecamcroatia.com" },
-            { land: "USA", stadt: "New York (Metropolen-Überwachung)", url: "https://earthcam.com" },
-            { land: "USA", stadt: "NASA (Live Erdüberwachung aus dem Orbit)", url: "https://akamaized.net" },
-            { land: "Japan", stadt: "Tokio (Shibuya-Crossing High-Traffic)", url: "https://earthcam.com" }
+            { land: "Deutschland", stadt: "Berlin (Mitte-Hauptstraßen-Raster)", url: "https://wetteronline.de", zoom: "1.3", top: "-110px", left: "-20px", width: "125%", height: "135%" },
+            { land: "Deutschland", stadt: "Hamburg (Hafen-Überwachungs-Radar)", url: "https://wetteronline.de", zoom: "1.3", top: "-110px", left: "-20px", width: "125%", height: "135%" },
+            { land: "Kroatien", stadt: "Zagreb (Balkan-Zentral-Radar)", url: "https://wetteronline.de", zoom: "1.2", top: "-90px", left: "-15px", width: "120%", height: "130%" },
+            { land: "Kroatien", stadt: "Split (Küsten-Sektor-Überwachung)", url: "https://wetteronline.de", zoom: "1.2", top: "-90px", left: "-15px", width: "120%", height: "130%" },
+            { land: "USA", stadt: "New York (East-Coast-Satellit)", url: "https://weather.com", zoom: "1.1", top: "-50px", left: "-10px", width: "110%", height: "115%" },
+            { land: "Japan", stadt: "Tokio (Zentral-Knotenpunkt-Sektor)", url: "https://weather.com", zoom: "1.1", top: "-50px", left: "-10px", width: "110%", height: "115%" }
         ];
 
         function openLayer(id) { closeAllLayers(); playHackerSound(440); document.getElementById(id).style.display = 'flex'; if(id==='search-layer') document.getElementById('search-input').focus(); if(id==='cam-layer') document.getElementById('cam-input').focus(); }
@@ -161,7 +157,7 @@
                 const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.land.toUpperCase()} [${c.stadt.toUpperCase()}]`;
                 d.onclick = () => {
                     playHackerSound(800); logTerminal(`Baue klicksicheren Tunnel: ${c.stadt}...`, "warn");
-                    buildStreamTunnel(c.stadt, c.url); closeAllLayers();
+                    buildStreamTunnel(c); closeAllLayers();
                 };
                 r.appendChild(d);
             });
@@ -178,32 +174,29 @@
                 document.getElementById('radar-targets').appendChild(circle);
                 const cam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
                 logTerminal(`[UPLINK HIT!!] Live-Signal abgefangen -> ${cam.stadt}`, "danger");
-                buildStreamTunnel(cam.stadt, cam.url);
+                buildStreamTunnel(cam);
             }, 1000);
         }
 
-        // 3. UNBLOCKIERBARER TUNNEL-BUILDER MIT HLS.JS (Bricht die Handy-Blockaden)
-        function buildStreamTunnel(title, url) {
+        // 3. TUNNEL-BUILDER MIT ZOOM- & CLIP-TRICK (Schneidet Ränder der Websites weg)
+        function buildStreamTunnel(cam) {
             document.getElementById('stream-window').style.display = 'flex';
-            const video = document.getElementById('video-player');
+            const player = document.getElementById('video-player');
             
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
-                video.addEventListener('canplay', function() { video.play(); });
-            }
-            document.getElementById('stream-title').innerText = `LINK // ${title.toUpperCase()}`;
-            logTerminal(`HLS-Stream erfolgreich initialisiert.`, "info");
+            player.style.transform = `scale(${cam.zoom})`;
+            player.style.transformOrigin = "top left";
+            player.style.top = cam.top;
+            player.style.left = cam.left;
+            player.style.width = cam.width;
+            player.style.height = cam.height;
+            
+            player.src = cam.url;
+            document.getElementById('stream-title').innerText = `LINK // ${cam.stadt.toUpperCase()}`;
         }
         
         function closeStreamWindow() {
             document.getElementById('stream-window').style.display = 'none';
-            const video = document.getElementById('video-player');
-            video.pause(); video.src = "";
+            document.getElementById('video-player').src = "";
             logTerminal("Tunnel geschlossen. Satellit re-kalibriert.", "info");
         }
 
@@ -233,7 +226,7 @@
             { name: "Australien", code: "AU", cap: "Canberra", pop: "26.500.000", lang: "Englisch", cur: "Australischer Dollar (AUD)", boss: "Anthony Albanese", states: "6 Bundesstaaten & 2 Territorien (Sydney, Melbourne)" }
         ];
 
-        // Zusammenführung der beiden Listen für die unblockierbare Suche
+        // Zusammenführung der beiden Listen für die unblockierbare Offline-Suche
         const fullCountriesDB = [...localCountriesDB, ...globalCountriesDB];
 
         function filterCountries() {
