@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INTERACTIVE_NET_INTERFACE_v9.0</title>
+    <title>SECURE_NET_INTERFACE_v9.5</title>
     
     <style>
         body {
@@ -13,14 +13,13 @@
             margin: 0; padding: 10px;
             height: 100vh;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             text-shadow: 0 0 5px #00ff33;
             user-select: none; -webkit-user-select: none;
             overflow: hidden;
         }
 
-        /* CRT Monitor Scanline-Effekt */
+        /* CRT Scanline-Effekt */
         body::before {
             content: " "; display: block;
             position: fixed; top: 0; left: 0; bottom: 0; right: 0;
@@ -42,7 +41,7 @@
 
         @media (max-width: 768px) {
             .container { flex-direction: column; overflow-y: auto; }
-            .panel.left { height: 320px !important; flex-shrink: 0; }
+            .panel.left { height: 310px !important; flex-shrink: 0; }
             .panel.right { height: 350px !important; flex-shrink: 0; margin-bottom: 25px; }
         }
 
@@ -78,7 +77,7 @@
 
         button:active { background: #00ff33; color: #000; }
 
-        /* Windows CMD Terminal */
+        /* Fester Terminal-Kasten */
         #terminal {
             flex-grow: 1; background: #000; padding: 8px;
             overflow-y: scroll; font-size: 0.75rem;
@@ -104,7 +103,7 @@
         .map-land { fill: none; stroke: #00ff33; stroke-width: 1.5; opacity: 0.75; }
         .map-grid { fill: none; stroke: #001800; stroke-width: 0.5; }
 
-        /* Hacker-Suchmaske Overlay */
+        /* Suchmaske Overlay */
         #search-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 5; background: rgba(0, 5, 0, 0.95); display: none;
@@ -129,13 +128,13 @@
         }
         .search-item:hover { background: #003300; color: #fff; }
 
-        /* Webcam Layer */
+        /* REPARIERTES WEBCAM LAYER (Sichere Videostreams) */
         #webcam-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 4; background: #000; display: none; flex-direction: column;
         }
-        #webcam-container { width: 100%; height: calc(100% - 30px); display: flex; align-items: center; justify-content: center; background: #020202; overflow: hidden; }
-        #cam-image { width: 100%; height: 100%; object-fit: cover; filter: invert(0.9) hue-rotate(90deg) contrast(1.4) brightness(0.7); }
+        #webcam-container { width: 100%; height: calc(100% - 30px); background: #000; }
+        #webcam-container iframe { width: 100%; height: 100%; border: none; filter: hue-rotate(60deg) contrast(1.2) brightness(0.9); }
         
         .layer-bar {
             background: #001500; height: 30px; display: flex; justify-content: space-between; align-items: center;
@@ -148,7 +147,7 @@
 <body>
 
     <header>
-        <div>[INTERFACE: SYSTEM_GRID] // MODE: LIVE_v9.0</div>
+        <div>[INTERFACE: SYSTEM_GRID] // MODE: LIVE_v9.5</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
 
@@ -164,8 +163,8 @@
             </div>
             
             <div id="terminal">
-                <div style="color: #00ff33;">[SYSTEM] Interaktiver Kriterien-Filter v9.0 geladen.</div>
-                <div style="color: #00ff33;">[SYSTEM] Warte auf Benutzereingabe...</div>
+                <div style="color: #00ff33;">[SYSTEM] Autarkes Kriterien-Register v9.5 aktiv.</div>
+                <div style="color: #00ff33;">[SYSTEM] System bereit für fehlerfreie Abfragen.</div>
             </div>
         </div>
 
@@ -183,7 +182,7 @@
                         <span>DATABASE_SEARCH // TARGET_SELECTION</span>
                         <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
-                    <input type="text" id="search-input" placeholder="Anfangsbuchstaben eingeben (z.B. K)..." oninput="filterCountries()">
+                    <input type="text" id="search-input" placeholder="Anfangsbuchstaben eingeben (z.B. K oder H)..." oninput="filterCountries()">
                     <div id="search-results">
                         <div style="color: #444; padding: 10px;">Warte auf Eingabe zur Live-Filterung...</div>
                     </div>
@@ -196,7 +195,7 @@
                         <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] DISCONNECT</span>
                     </div>
                     <div id="webcam-container">
-                        <img id="cam-image" src="" alt="Live Feed">
+                        <iframe id="cam-video" src="" allow="autoplay; encrypted-media"></iframe>
                     </div>
                 </div>
                 
@@ -242,7 +241,6 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // 1. SAT-SCAN
         function triggerRadarScan() {
             logTerminal("Starte orbitalen Frequenz-Scan...", "warn");
             const container = document.getElementById('radar-targets');
@@ -258,30 +256,29 @@
                     anim.setAttribute("attributeName", "opacity"); anim.setAttribute("values", "1;0;1");
                     anim.setAttribute("dur", "0.8s"); anim.setAttribute("repeatCount", "indefinite");
                     circle.appendChild(anim); container.appendChild(circle);
-                    logTerminal(`DETECTION -> Node-Verbindung hergestellt bei Grid: [X:${rx} | Y:${ry}]`, "info");
+                    logTerminal(`DETECTION -> Verbindung steht bei Grid: [X:${rx} | Y:${ry}]`, "info");
                     playHackerSound(700, 'sine', 0.05);
                 }, i * 400);
             }
         }
 
-        // 2. INTERAKTIVER LÄNDER FILTER & LIVE-ABFRAGE (Echtes Internet über fetch)
-        let allCountriesCache = [];
+        // UNBLOCKIERBARER LÄNDER-CACHE DIREKT IM CODE INTERGRIERT
+        const allCountriesCache = [
+            { name: "Croatia (Kroatien)", code: "HR", cap: "Zagreb", pop: "4.000.000", lang: "Kroatisch", cur: "Euro (EUR)" },
+            { name: "Germany (Deutschland)", code: "DE", cap: "Berlin", pop: "83.200.000", lang: "Deutsch", cur: "Euro (EUR)" },
+            { name: "Honduras", code: "HN", cap: "Tegucigalpa", pop: "10.000.000", lang: "Spanisch", cur: "Lempira (HNL)" },
+            { name: "Hungary (Ungarn)", code: "HU", cap: "Budapest", pop: "9.700.000", lang: "Ungarisch", cur: "Forint (HUF)" },
+            { name: "Japan", code: "JP", cap: "Tokio", pop: "125.100.000", lang: "Japanisch", cur: "Yen (JPY)" },
+            { name: "Canada (Kanada)", code: "CA", cap: "Ottawa", pop: "38.000.000", lang: "Englisch, Französisch", cur: "Kanadischer Dollar (CAD)" },
+            { name: "Greece (Griechenland)", code: "GR", cap: "Athen", pop: "10.700.000", lang: "Griechisch", cur: "Euro (EUR)" },
+            { name: "Netherlands (Niederlande)", code: "NL", cap: "Amsterdam", pop: "17.500.000", lang: "Niederländisch", cur: "Euro (EUR)" }
+        ];
 
         function openSearchLayer() {
             document.getElementById('search-layer').style.display = 'flex';
             document.getElementById('search-input').focus();
-            
-            if (allCountriesCache.length === 0) {
-                logTerminal("Lade globales Länderregister aus dem Internet-Knoten...", "warn");
-                fetch('https://restcountries.com')
-                    .then(res => res.json())
-                    .then(data => {
-                        allCountriesCache = data.map(c => ({ name: c.name.common, code: c.cca2 })).sort((a,b) => a.name.localeCompare(b.name));
-                        logTerminal(`Datalink aktiv: ${allCountriesCache.length} souveräne Ziel-Systeme registriert.`, "info");
-                        filterCountries();
-                    })
-                    .catch(() => logTerminal("API-VERBINDUNGSFEHLER: Register konnte nicht geladen werden.", "danger"));
-            }
+            logTerminal("Lokales Kriterien-Register geöffnet.", "info");
+            filterCountries();
         }
 
         function filterCountries() {
@@ -290,14 +287,14 @@
             resultsBox.innerHTML = '';
 
             if(query.length === 0) {
-                resultsBox.innerHTML = '<div style="color: #444; padding: 10px;">Tippe einen Buchstaben ein, um das Register zu filtern...</div>';
+                resultsBox.innerHTML = '<div style="color: #444; padding: 10px;">Tippe einen Buchstaben ein (z.B. H oder K)...</div>';
                 return;
             }
 
-            const filtered = allCountriesCache.filter(c => c.name.toLowerCase().startsWith(query));
+            const filtered = allCountriesCache.filter(c => c.name.toLowerCase().includes(query) || c.code.toLowerCase().startsWith(query));
 
             if(filtered.length === 0) {
-                resultsBox.innerHTML = '<div style="color: #ff0055; padding: 10px;">KEINE PASSENDEN NETZWERKKNOTEN GEFUNDEN.</div>';
+                resultsBox.innerHTML = '<div style="color: #ff0055; padding: 10px;">KEINE PASSENDEN NETZWERKKNOTEN IN DIESER COPIE GEFUNDEN.</div>';
                 return;
             }
 
@@ -307,78 +304,52 @@
                 div.innerText = `> NODE: ${c.name.toUpperCase()} [${c.code}]`;
                 div.onclick = () => {
                     playHackerSound(440, 'triangle', 0.1);
-                    fetchSpecificTarget(c.code);
+                    displayTargetData(c);
                     closeAllLayers();
                 };
                 resultsBox.appendChild(div);
             });
         }
 
-        function fetchSpecificTarget(code) {
-            logTerminal(`Sende verschlüsselten Daten-Request für Knoten [${code}]...`, "warn");
-            
-            fetch(`https://restcountries.com{code}`)
-                .then(res => res.json())
-                .then(data => {
-                    const c = data[0] || data;
-                    const name = c.name.common.toUpperCase();
-                    const flag = c.flag ? c.flag : '⚙️';
-                    const cap = c.capital ? c.capital[0] : 'Unbekannt';
-                    const pop = c.population.toLocaleString();
-                    const curCode = Object.keys(c.currencies)[0];
-                    const curName = c.currencies[curCode].name;
-                    const curSym = c.currencies[curCode].symbol || '';
-                    const lang = Object.values(c.languages).join(', ');
-                    const tzone = c.timezones.join(' | ');
-                    const mapUrl = c.maps.googleMaps;
-
-                    logTerminal(`======= [ TARGET PACKET: ${flag} ${name} ] =======`, "info");
-                    logTerminal(` > HAUPTKNOTEN:   ${cap.toUpperCase()}`);
-                    logTerminal(` > NETZ-BÜRGER:   ${pop}`);
-                    logTerminal(` > SPRACH-DECK:   ${lang}`);
-                    logTerminal(` > WAHRUNGS-ID:   ${curName} (${curCode} [${curSym}])`);
-                    logTerminal(` > ZEITZONEN:     ${tzone}`);
-                    logTerminal(` > GOOGLE_UPLINK: ${mapUrl}`, "warn");
-                    logTerminal(`==========================================`, "info");
-                    playHackerSound(600, 'triangle', 0.2);
-                })
-                .catch(() => logTerminal(`CRITICAL: Paketverlust bei Abfrage von Knoten ${code}.`, "danger"));
+        function displayTargetData(c) {
+            logTerminal(`======= [ TARGET PACKET: ${c.code} ] =======`, "info");
+            logTerminal(` > KNOTENPUNKT:   ${c.name.toUpperCase()}`);
+            logTerminal(` > HAUPTKNOTEN:   ${c.cap.toUpperCase()}`);
+            logTerminal(` > NETZ-BÜRGER:   ${c.pop}`);
+            logTerminal(` > AMTSSPRACHE:   ${c.lang}`);
+            logTerminal(` > WAHRUNG:       ${c.cur}`);
+            logTerminal(` > STATUS:        Sicher // Verschlüsselung aktiv.`, "warn");
+            logTerminal(`==========================================`, "info");
+            playHackerSound(600, 'triangle', 0.2);
         }
 
-        // 3. WEBCAM SYSTEM
+        // REPARIERTE WEBCAMS ÜBER EMBEDDED VIDEOSTREAMS
         const webcams = [
-            { title: "LIVE_FEED // STRANDKAFEE_NORDERNEY", url: "https://norderney.de" },
-            { title: "LIVE_FEED // MARKTPLATZ_HEIDELBERG", url: "https://heidelberg-webcam.de" },
-            { title: "LIVE_FEED // ALPEN_PANORAMA", url: "https://foto-webcam.ch" }
+            { title: "LIVE_FEED // ISS_SPACE_STATION", url: "https://youtube-nocookie.com" },
+            { title: "LIVE_FEED // TOKIO_SHIBUYA", url: "https://youtube-nocookie.com" }
         ];
         let currentCamIndex = 0;
-        let camInterval = null;
 
         function startLiveWebcam() {
             const layer = document.getElementById('webcam-layer');
-            const img = document.getElementById('cam-image');
+            const video = document.getElementById('cam-video');
             const title = document.getElementById('cam-title');
             
             closeAllLayers();
             layer.style.display = 'flex';
             
-            function updateCamFrame() {
-                const feed = webcams[currentCamIndex];
-                title.innerText = feed.title;
-                img.src = feed.url + "?t=" + new Date().getTime();
-            }
-
-            updateCamFrame();
-            logTerminal(`Starte Webcam-Stream...`, "warn");
-            camInterval = setInterval(updateCamFrame, 2000);
+            const feed = webcams[currentCamIndex];
+            title.innerText = feed.title;
+            video.src = feed.url;
+            
+            logTerminal(`Verbinde sicheren Video-Tunnel: ${feed.title}`, "warn");
             currentCamIndex = (currentCamIndex + 1) % webcams.length;
         }
 
         function closeAllLayers() {
-            clearInterval(camInterval);
             document.getElementById('webcam-layer').style.display = 'none';
             document.getElementById('search-layer').style.display = 'none';
-            document.getElementById('cam-image').src = "";
+            document.getElementById('cam-video').src = "";
             document.getElementById('search-input').value = "";
         }
     </script>
