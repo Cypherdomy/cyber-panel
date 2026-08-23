@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DYNAMIC_NETWORK_INTERFACE_v10.0</title>
+    <title>OVERWATCH_SYSTEM_v11.0</title>
     
     <style>
         body {
@@ -41,8 +41,8 @@
 
         @media (max-width: 768px) {
             .container { flex-direction: column; overflow-y: auto; }
-            .panel.left { height: 310px !important; flex-shrink: 0; }
-            .panel.right { height: 350px !important; flex-shrink: 0; margin-bottom: 25px; }
+            .panel.left { height: 340px !important; flex-shrink: 0; }
+            .panel.right { height: 320px !important; flex-shrink: 0; margin-bottom: 25px; }
         }
 
         .panel {
@@ -53,8 +53,8 @@
             display: flex; flex-direction: column; box-sizing: border-box;
         }
 
-        .panel.left { width: 100%; flex: 1; height: 100%; }
-        .panel.right { width: 100%; flex: 1.8; height: 100%; position: relative; }
+        .panel.left { width: 100%; flex: 1.2; height: 100%; }
+        .panel.right { width: 100%; flex: 1.5; height: 100%; position: relative; }
 
         .panel-title {
             font-weight: bold; text-transform: uppercase;
@@ -82,10 +82,20 @@
             flex-grow: 1; background: #000; padding: 8px;
             overflow-y: scroll; font-size: 0.75rem;
             border: 1px solid #003300; margin-top: 10px;
-            height: 120px; box-sizing: border-box;
+            height: 140px; box-sizing: border-box;
         }
         #terminal::-webkit-scrollbar { width: 4px; }
         #terminal::-webkit-scrollbar-thumb { background: #004400; }
+
+        /* Integriertes Input-Feld für Terminal-Eingaben über der Tastatur */
+        #terminal-input-container {
+            display: none; margin-top: 5px; gap: 5px; flex-shrink: 0;
+        }
+        #cmd-input {
+            background: #000; color: #00ff33; border: 1px solid #00ff33;
+            padding: 5px; font-family: 'Courier New', monospace; font-size: 0.8rem;
+            flex-grow: 1; outline: none;
+        }
 
         #display-master {
             width: 100%; height: 100%; background: #000;
@@ -128,47 +138,26 @@
         }
         .search-item:hover { background: #003300; color: #fff; }
 
-        /* INTERAKTIVES WEBCAM-VERZEICHNIS LAYER */
-        #webcam-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 4; background: rgba(0,5,0,0.98); display: none; flex-direction: column;
-        }
-        #webcam-content-box {
-            width: 100%; height: calc(100% - 30px);
-            padding: 15px; box-sizing: border-box; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        
-        .directory-country {
-            border: 1px solid #00ff33; background: rgba(0,30,0,0.3);
-            padding: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
-        }
-        .directory-cities {
-            display: none; flex-direction: column; gap: 5px; padding: 5px 0 5px 15px;
-            border-left: 1px dashed #00ff33; margin-top: 5px;
-        }
-        .city-link {
-            padding: 5px; color: #ffb000; font-size: 0.8rem; cursor: pointer;
-        }
-        .city-link:hover { background: #002200; color: #00ff33; }
-
-        /* Separates Live-Streaming-Fenster */
+        /* REINES STREAM WINDOW (Ohne Menüs, reines Video) */
         #stream-window {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 6; display: none; flex-direction: column;
         }
         #video-player { width: 100%; height: calc(100% - 30px); background: #000; border: none; }
+        #video-player.matrix-filter { filter: hue-rotate(60deg) contrast(1.4) brightness(0.8); }
 
         .layer-bar {
             background: #001500; height: 30px; display: flex; justify-content: space-between; align-items: center;
             padding: 0 10px; font-size: 0.75rem; font-weight: bold; border-bottom: 1px solid #00ff33; flex-shrink: 0;
         }
+
+        @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <header>
-        <div>[INTERFACE: OPERATIONAL_GRID] // VER_10.0</div>
+        <div>[SYSTEM: OPERATIONAL_GRID] // VER_11.0_LIVE</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
 
@@ -179,13 +168,20 @@
             <div class="button-group">
                 <button onclick="playHackerSound(520, 'sine', 0.08); triggerLiveRadarScan();">SCAN SENSORS</button>
                 <button onclick="playHackerSound(380, 'sawtooth', 0.12); openSearchLayer();">LÄNDER STATS</button>
-                <button onclick="playHackerSound(880, 'triangle', 0.05); openWebcamDirectory();">LIVE WEBCAM</button>
-                <button onclick="playHackerSound(580, 'square', 0.1); closeAllLayers();">RADAR MODE</button>
+                <button onclick="playHackerSound(880, 'triangle', 0.05); printWebcamMenu();">LIVE WEBCAM</button>
+                <button onclick="playHackerSound(580, 'square', 0.1); closeAllLayers();">CLEAR PANEL</button>
             </div>
             
+            <!-- Das CMD-Terminal -->
             <div id="terminal">
-                <div style="color: #00ff33;">[SYSTEM] Dynamic Overwatch Node v10.0 initialisiert.</div>
-                <div style="color: #00ff33;">[SYSTEM] Bereit für autonome Netzwerksuchen...</div>
+                <div style="color: #00ff33;">[SYSTEM] Terminal-Protokoll v11.0 geladen.</div>
+                <div style="color: #00ff33;">[SYSTEM] Radar-Subnetz im Hintergrund aktiv...</div>
+            </div>
+
+            <!-- Integrierte Befehlszeile für Eingaben direkt über der Tastatur -->
+            <div id="terminal-input-container">
+                <span style="color: #00ff33; font-size: 0.8rem; font-weight: bold;">CMD></span>
+                <input type="text" id="cmd-input" placeholder="Verbindungs-ID eingeben..." onkeypress="handleTerminalInput(event)">
             </div>
         </div>
 
@@ -194,10 +190,10 @@
             <div class="panel-title">> VISUAL_CORE_DISPLAY</div>
             <div id="display-master">
                 
-                <!-- Radar-Strahl -->
+                <!-- Permanenter Radar-Strahl -->
                 <div id="radar-sweep"></div>
                 
-                <!-- Hacker-Suchmaske für gezielte Länder-Auswahl -->
+                <!-- Suchen-Overlay -->
                 <div id="search-layer">
                     <div class="layer-bar" style="margin-bottom: 10px;">
                         <span>DATABASE_SEARCH // TARGET_SELECTION</span>
@@ -207,24 +203,13 @@
                     <div id="search-results"></div>
                 </div>
 
-                <!-- Dynamisches Webcam Verzeichnis Layer -->
-                <div id="webcam-layer">
-                    <div class="layer-bar">
-                        <span>LIVE_IP_CAM_DIRECTORY // SELECT_COUNTRY</span>
-                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
-                    </div>
-                    <div id="webcam-content-box">
-                        <!-- Wird komplett dynamisch durch JavaScript befüllt! -->
-                    </div>
-                </div>
-
-                <!-- Eigenständiges Live-Video-Streaming-Fenster (Unblockierbar) -->
+                <!-- Reines Videofenster (Vollbild ohne Menü-Müll) -->
                 <div id="stream-window">
                     <div class="layer-bar">
                         <span id="stream-title">TUNNEL_LINK // ESTABLISHED</span>
                         <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeStreamWindow()">[X] DISCONNECT</span>
                     </div>
-                    <iframe id="video-player" src="" allow="autoplay"></iframe>
+                    <iframe id="video-player" class="matrix-filter" src="" allow="autoplay"></iframe>
                 </div>
                 
                 <!-- Vektor-Weltkarte -->
@@ -268,124 +253,94 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // DYNAMISCHES KAMERA- UND STÄDTE-REGISTER (Direktverbindungen)
-        const webcamDatabase = [
-            {
-                country: "DEUTSCHLAND",
-                cities: [
-                    { name: "Berlin (Verkehrsknoten)", url: "https://wetter.com" },
-                    { name: "Hamburg (Hafenüberwachung)", url: "https://hamburg.de" },
-                    { name: "München (Zentrum)", url: "https://wetter.com" }
-                ]
-            },
-            {
-                country: "KROATIEN",
-                cities: [
-                    { name: "Zagreb (Hauptplatz)", url: "https://livecamcroatia.com" },
-                    { name: "Split (Hafeneinfahrt)", url: "https://livecamcroatia.com" },
-                    { name: "Dubrovnik (Altstadt)", url: "https://livecamcroatia.com" }
-                ]
-            },
-            {
-                country: "JAPAN",
-                cities: [
-                    { name: "Tokio (Shibuya Crossing)", url: "https://skylinewebcams.com" },
-                    { name: "Fujisan (Vulkanüberwachung)", url: "https://livecameras.biz" }
-                ]
-            },
-            {
-                country: "USA",
-                cities: [
-                    { name: "New York (Times Square Live)", url: "https://earthcam.com" },
-                    { name: "Miami Beach (Küsten-Radar)", url: "https://webcamtaxi.com" }
-                ]
-            }
-        ];
-
-        // LÄNDERREGISTER FÜR DIE TEXT-SUCHE
+        // UNBLOCKIERBARES INTERNAL REGISTER
         const allCountriesCache = [
             { name: "Croatia (Kroatien)", code: "HR", cap: "Zagreb", pop: "4.000.000", lang: "Kroatisch", cur: "Euro (EUR)" },
             { name: "Germany (Deutschland)", code: "DE", cap: "Berlin", pop: "83.200.000", lang: "Deutsch", cur: "Euro (EUR)" },
             { name: "Japan", code: "JP", cap: "Tokio", pop: "125.100.000", lang: "Japanisch", cur: "Yen (JPY)" },
             { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington D.C.", pop: "333.000.000", lang: "Englisch", cur: "US-Dollar (USD)" }
         ];
-        // 1. AUTONOMER RADAR-SCAN: Findet selbstständig IP-Kameras im Netz!
+
+        // DATENBANK FÜR REINE VIDEO-FEEDS (Keine Webseiten-Spiegelungen mehr!)
+        const webcamDatabase = [
+            { id: 1, name: "BERLIN (Umlaufüberwachung)", url: "https://youtube-nocookie.com" },
+            { id: 2, name: "TOKIO (Shibuya Kreuzung)", url: "https://youtube-nocookie.com" },
+            { id: 3, name: "ZAGREB (Hauptstadt-Zentrum)", url: "https://youtube-nocookie.com" },
+            { id: 4, name: "NASA TV (Missionskontrolle)", url: "https://youtube-nocookie.com" }
+        ];
+
+        // 1. WEBCAM-VERZEICHNIS DIREKT IM TERMINAL PRINTEN
+        function printWebcamMenu() {
+            closeAllLayers();
+            document.getElementById('terminal-input-container').style.display = 'flex';
+            logTerminal("======= [ LIVE CAM DIRECTORY ] =======", "warn");
+            logTerminal("Verfügbare weltweite Video-Uplinks:");
+            
+            webcamDatabase.forEach(cam => {
+                logTerminal(` ID [ ${cam.id} ] -> CONNECT_TO: ${cam.name}`, "info");
+            });
+            
+            logTerminal("======================================", "warn");
+            logTerminal("Befehl: Tippe die ID im CMD-Feld ein & drücke Enter.", "warn");
+            document.getElementById('cmd-input').focus();
+        }
+        // 2. TERMINAL EINGABE VERARBEITEN (Verknüpft die ID mit dem Video)
+        function handleTerminalInput(e) {
+            if (e.key === 'Enter') {
+                const inputVal = document.getElementById('cmd-input').value.trim();
+                const camId = parseInt(inputVal);
+                
+                // Suche die gewählte ID in der Video-Datenbank
+                const selectedCam = webcamDatabase.find(c => c.id === camId);
+                
+                if (selectedCam) {
+                    playHackerSound(900, 'sine', 0.1);
+                    logTerminal(`Verbindung wird aufgebaut zu ID [${camId}]...`, "warn");
+                    buildStreamTunnel(selectedCam.name, selectedCam.url);
+                    document.getElementById('cmd-input').value = "";
+                } else {
+                    playHackerSound(250, 'sawtooth', 0.2);
+                    logTerminal(`CRITICAL_ERROR: ID [${inputVal}] ungültig.`, "danger");
+                }
+            }
+        }
+
+        // 3. SEKTOR-SCAN (Simuliert IP-Scan und schaltet automatisch ein Video frei)
         function triggerLiveRadarScan() {
-            logTerminal("Initialisiere Netzwerk-Scanner... Scanne IP-Subnetze ab.", "warn");
+            closeAllLayers();
+            logTerminal("Starte orbitalen Port-Scan... Abfangen von Subnetzen.", "warn");
             const container = document.getElementById('radar-targets');
             container.innerHTML = '';
             
             for(let i=0; i<3; i++) {
                 setTimeout(() => {
-                    const fakeIP = `192.168.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*254)}`;
-                    const fakePort = Math.floor(Math.random() * 8000) + 80;
-                    logTerminal(`PROBING PORT -> IP: ${fakeIP}:${fakePort} ... [SCANNING]`, "info");
+                    const fakeIP = `10.84.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*254)}`;
+                    logTerminal(`SCANNING SUB-NODE -> IP: ${fakeIP} ... [PROBING]`, "info");
                 }, i * 300);
             }
 
+            // Nach dem Scan schlägt das Radar automatisch an!
             setTimeout(() => {
                 const rx = Math.floor(Math.random() * 650) + 180;
                 const ry = Math.floor(Math.random() * 250) + 100;
                 
                 const circle = document.createElementNS("http://w3.org", "circle");
-                circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "9");
+                circle.setAttribute("cx", rx); circle.setAttribute("cy", ry); circle.setAttribute("r", "10");
                 circle.setAttribute("fill", "none"); circle.setAttribute("stroke", "#ff0055"); circle.setAttribute("stroke-width", "2");
                 container.appendChild(circle);
 
-                const randomCountry = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
-                const randomCity = randomCountry.cities[Math.floor(Math.random() * randomCountry.cities.length)];
+                // Wählt ein zufälliges Ziel aus der sauberen Video-Datenbank
+                const randomCam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
 
-                logTerminal(`[UPLINK HIT!!] Unverschlüsseltes Videosignal gefunden!`, "danger");
-                logTerminal(`> ORTUNG: ${randomCity.name} (${randomCountry.country})`, "warn");
-                logTerminal(`Öffne abgefangenen Video-Tunnel...`, "info");
+                logTerminal(`[UPLINK CAPTURED!!] Signal unverschlüsselt abgefangen!`, "danger");
+                logTerminal(`> ROUTE: ${randomCam.name}`, "warn");
                 
-                playHackerSound(900, 'sawtooth', 0.3);
-                buildStreamTunnel(randomCity.name, randomCity.url);
-            }, 1200);
+                playHackerSound(800, 'sawtooth', 0.25);
+                buildStreamTunnel(randomCam.name, randomCam.url);
+            }, 1100);
         }
 
-        // 2. FUNKTION: WEBCAM VERZEICHNIS DYNAMISCH AUFBAUEN
-        function openWebcamDirectory() {
-            closeAllLayers();
-            const layer = document.getElementById('webcam-layer');
-            const box = document.getElementById('webcam-content-box');
-            box.innerHTML = ''; 
-            layer.style.display = 'flex';
-            logTerminal("Lade dynamisches Live-Kamera-Verzeichnis...", "info");
-
-            webcamDatabase.forEach((item, index) => {
-                const countryDiv = document.createElement('div');
-                countryDiv.className = 'directory-country';
-                countryDiv.innerText = `[+] REGION: ${item.country}`;
-                
-                const citiesDiv = document.createElement('div');
-                citiesDiv.className = 'directory-cities';
-                citiesDiv.id = `cities-list-${index}`;
-
-                item.cities.forEach(city => {
-                    const cityLink = document.createElement('div');
-                    cityLink.className = 'city-link';
-                    cityLink.innerText = ` > CONNECT_TO: ${city.name} [24/7 LIVE]`;
-                    cityLink.onclick = (e) => {
-                        e.stopPropagation(); 
-                        playHackerSound(600, 'triangle', 0.1);
-                        buildStreamTunnel(city.name, city.url);
-                    };
-                    citiesDiv.appendChild(cityLink);
-                });
-
-                countryDiv.onclick = () => {
-                    playHackerSound(400, 'sine', 0.05);
-                    const isVisible = citiesDiv.style.display === 'flex';
-                    citiesDiv.style.display = isVisible ? 'none' : 'flex';
-                    countryDiv.innerText = isVisible ? `[+] REGION: ${item.country}` : `[-] REGION: ${item.country}`;
-                };
-
-                countryDiv.appendChild(citiesDiv);
-                box.appendChild(countryDiv);
-            });
-        }
-
+        // 4. UNBLOCKIERBARER TUNNEL-BUILDER (Spielt NUR das reine Video ab)
         function buildStreamTunnel(title, url) {
             const windowLayer = document.getElementById('stream-window');
             const player = document.getElementById('video-player');
@@ -393,16 +348,16 @@
             
             player.src = url;
             windowLayer.style.display = 'flex';
-            logTerminal(`Verschlüsselter Video-Tunnel zu '${title}' steht.`, "warn");
+            logTerminal(`Datenstrom synchronisiert. Stream aktiv.`, "info");
         }
 
         function closeStreamWindow() {
             document.getElementById('stream-window').style.display = 'none';
             document.getElementById('video-player').src = "";
-            logTerminal("Video-Tunnel manuell getrennt. Zurück zum Radar.", "info");
+            logTerminal("Tunnel manuell geschlossen. Rückkehr zur Radar-Matrix.", "info");
         }
 
-        // 3. TEXT SUCHSYSTEM
+        // 5. TEXT SUCHSYSTEM (LÄNDER STATS)
         function openSearchLayer() {
             closeAllLayers();
             document.getElementById('search-layer').style.display = 'flex';
@@ -423,7 +378,7 @@
             const filtered = allCountriesCache.filter(c => c.name.toLowerCase().includes(query));
 
             if(filtered.length === 0) {
-                resultsBox.innerHTML = '<div style="color: #ff0055; padding: 10px;">KEINE REISTRIERTEN KNOTEN GEFUNDEN.</div>';
+                resultsBox.innerHTML = '<div style="color: #ff0055; padding: 10px;">KEINE PASSENDEN KNOTEN GEFUNDEN.</div>';
                 return;
             }
 
@@ -446,14 +401,16 @@
             logTerminal(` > NETZ-BÜRGER:   ${c.pop}`);
             logTerminal(` > AMTSSPRACHE:   ${c.lang}`);
             logTerminal(` > WAHRUNG:       ${c.cur}`);
-            logTerminal(` > STATUS:        Sicher // Verschlüsselung aktiv.`, "warn");
+            logTerminal(` > STATUS:        Sicher // GRID Verschlüsselung aktiv.`, "warn");
             logTerminal(`==========================================`, "info");
         }
 
         function closeAllLayers() {
             document.getElementById('webcam-layer').style.display = 'none';
             document.getElementById('search-layer').style.display = 'none';
+            document.getElementById('terminal-input-container').style.display = 'none';
             document.getElementById('search-input').value = "";
+            document.getElementById('cmd-input').value = "";
         }
     </script>
 </body>
