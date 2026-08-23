@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SATELLITE_OVERWATCH_v17.0</title>
+    <title>SATELLITE_OVERWATCH_v18.0</title>
+    <!-- Wir laden das offizielle, freie Open-Source Streaming-Tool (HLS.js) für unblockierbare Handystreams -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         body { background:#010501; color:#00ff33; font-family:'Courier New',monospace; margin:0; padding:10px; height:100vh; box-sizing:border-box; display:flex; flex-direction:column; overflow:hidden; text-shadow:0 0 5px #00ff33; user-select:none; -webkit-user-select:none; }
         body::before { content:" "; display:block; position:fixed; top:0; left:0; bottom:0; right:0; background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%); z-index:9999; background-size:100% 4px; pointer-events:none; }
@@ -11,9 +13,7 @@
         .container { display:flex; gap:15px; flex-grow:1; height:calc(100vh - 50px); min-height:0; }
         @media (max-width:768px) { .container { flex-direction:column; overflow-y:auto; } .panel.left { height:340px !important; flex-shrink:0; } .panel.right { height:320px !important; flex-shrink:0; margin-bottom:25px; } }
         .panel { border:1px solid #00ff33; background:rgba(0,8,0,0.7); padding:10px; box-shadow:inset 0 0 15px rgba(0,255,51,0.2); display:flex; flex-direction:column; box-sizing:border-box; }
-        .panel.left { width:100%; flex:1.2; position:relative; } 
-        /* position: relative und overflow: hidden ZWINGT den Radarstrahl im Käfig zu bleiben! */
-        .panel.right { width:100%; flex:1.5; position:relative; overflow:hidden; }
+        .panel.left { width:100%; flex:1.2; position:relative; } .panel.right { width:100%; flex:1.5; position:relative; overflow:hidden; }
         .panel-title { font-weight:bold; text-transform:uppercase; border-bottom:1px dashed #00ff33; padding-bottom:3px; margin-bottom:8px; font-size:0.85rem; letter-spacing:1px; }
         .button-group { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
         button { background:#001500; color:#00ff33; border:1px solid #00ff33; padding:12px 5px; cursor:pointer; font-family:'Courier New',monospace; font-weight:bold; font-size:0.75rem; text-transform:uppercase; }
@@ -26,13 +26,13 @@
         .layer-results { margin-top:15px; overflow-y:auto; flex-grow:1; border:1px dashed #004400; padding:5px; }
         .search-item { padding:8px; border-bottom:1px solid #002200; cursor:pointer; font-size:0.85rem; }
         
+        /* REINES STREAM-FENSTER FÜR DIE ECHTEN FILME (Klicksicher & Vollbild) */
         #stream-window { position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:6; display:none; flex-direction:column; }
-        #video-clipper { width:100%; height:calc(100% - 30px); overflow:hidden; position:relative; background:#000; }
-        #video-player { width:100%; height:100%; border:none; position:absolute; top:0; left:0; filter:hue-rotate(60deg) contrast(1.3) brightness(0.8); }
-        #click-shield { position:absolute; top:0; left:0; width:100%; height:100%; z-index:7; background:rgba(0,0,0,0); cursor:default; }
+        #video-clipper { width:100%; height:calc(100% - 30px); position:relative; background:#000; }
+        #video-player { width:100%; height:100%; object-fit:cover; border:none; filter:hue-rotate(60deg) contrast(1.3) brightness(0.8); }
+        #click-shield { position:absolute; top:0; left:0; width:100%; height:100%; z-index:7; background:rgba(0,0,0,0); }
         .layer-bar { background:#001500; height:30px; display:flex; justify-content:space-between; align-items:center; padding:0 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #00ff33; }
         
-        /* Das fixierte Radar-Element im rechten Monitor */
         #radar-sweep { position:absolute; width:200%; height:200%; top:-50%; left:-50%; background:conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg); transform-origin:center; animation:sweep 3.5s linear infinite; pointer-events:none; z-index:3; }
         svg.vector-map { width:100%; height:100%; z-index:2; position:absolute; top:0; left:0; }
         .map-land { fill:none; stroke:#00ff33; stroke-width:1.5; opacity:0.75; }
@@ -42,8 +42,8 @@
 </head>
 <body>
     <header>
-        <div>[SYS_STATUS: ACTIVE] // OVERWATCH_GRID_ONLINE</div>
-        <!-- Die exakt formatierte deutsche Live-Uhrzeit -->
+        <div>[SYS_STATUS: ACTIVE] // OVERWATCH_GRID_ONLINE // MODE: DIRECT_STREAM</div>
+        <!-- Die neue, perfekt sichtbare deutsche Live-Uhrzeit -->
         <div id="live-clock" style="color: #ffb000; font-weight: bold; letter-spacing: 1px;">00.00.0000 - 00:00:00</div>
     </header>
     <div class="container">
@@ -57,22 +57,23 @@
                 <button onclick="closeAllLayers()">CLEAR PANEL</button>
             </div>
             <div id="terminal">
-                <div style="color:#00ff33;">[SYSTEM] System v17.0 geladen.</div>
-                <div style="color:#00ff33;">[SYSTEM] Direkte, unblockierbare Medien-Server aktiv.</div>
+                <div style="color:#00ff33;">[SYSTEM] System v18.0 unblockierbar initialisiert.</div>
+                <div style="color:#00ff33;">[SYSTEM] HLS-Streaming-Engine geladen. YouTube restlos entfernt.</div>
             </div>
         </div>
         
-        <!-- RECHTES HAUPTDISPLAY -->
+        <!-- RECHTES HAUPTDISPLAY (DER MATRIX-RADAR-KÄFIG) -->
         <div class="panel right">
             <div class="panel-title">> VISUAL_CORE_DISPLAY</div>
             <div id="display-master">
+                <!-- Der rotierende Strahl ist jetzt krisensicher hier eingesperrt -->
                 <div id="radar-sweep"></div>
                 
                 <!-- 1. Overlay für die unblockierbaren Länder-Statistiken -->
                 <div id="search-layer" class="layer-overlay">
                     <div class="layer-bar" style="margin-bottom:10px;">
                         <span>DATABASE_SEARCH // LÄNDER_STATS</span>
-                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
+                        <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
                     <input type="text" id="search-input" class="layer-input" placeholder="Land eingeben (z.B. Deutschland, Kroatien, Bosnien)..." oninput="filterCountries()">
                     <div id="search-results" class="layer-results"></div>
@@ -82,21 +83,22 @@
                 <div id="cam-layer" class="layer-overlay">
                     <div class="layer-bar" style="margin-bottom:10px;">
                         <span>LIVE_IP_CAM_SEARCH // SELECT_COUNTRY</span>
-                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
+                        <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
                     <input type="text" id="cam-input" class="layer-input" placeholder="Nach Land suchen (z.B. Deutschland, USA, Japan)..." oninput="filterWebcams()">
                     <div id="cam-results" class="layer-results"></div>
                 </div>
                 
-                <!-- Reines Videofenster (Vollbild, unblockierbar) -->
+                <!-- Reines Videofenster (Klicksicher, Vollbild ohne Website-Müll) -->
                 <div id="stream-window">
                     <div class="layer-bar">
                         <span id="stream-title">TUNNEL_LINK // ESTABLISHED</span>
-                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeStreamWindow()">[X] CLOSE</span>
+                        <span style="color:#ff0055; font-weight:bold; cursor:pointer;" onclick="closeStreamWindow()">[X] CLOSE</span>
                     </div>
                     <div id="video-clipper">
                         <div id="click-shield"></div>
-                        <iframe id="video-player" src="" allow="autoplay"></iframe>
+                        <!-- Das reine HTML5 Video-Element, gesteuert durch die HLS-Engine -->
+                        <video id="video-player" autoplay loop muted playsinline></video>
                     </div>
                 </div>
                 
@@ -135,18 +137,14 @@
             t.scrollTop = t.scrollHeight;
         }
 
-        // DIREKTE MEDIEN-SERVER-STREAMS: Reine, unblockierbare Bild- und Radarquellen ohne Cookie-Zwänge!
+        // UNBLOCKIERBARE LIVE STREAM VERZEICHNISSE (Nackte Streaming-Server .m3u8 ohne Cookie-Müll)
         const webcamDatabase = [
-            { land: "Deutschland", stadt: "Berlin (Verkehrsknoten-Nord)", url: "https://dwd.de", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "Deutschland", stadt: "Hamburg (Hafen-Überwachung)", url: "https://dwd.de", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "Deutschland", stadt: "München (Isar-Sektor)", url: "https://dwd.de", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "Kroatien", stadt: "Zagreb (Hauptstadt-Uplink)", url: "https://vrijeme.hr", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "Kroatien", stadt: "Split (Küsten-Radar)", url: "https://vrijeme.hr", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "Kroatien", stadt: "Rijeka (Hafen-Uplink)", url: "https://vrijeme.hr", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "USA", stadt: "New York (East-Coast-Grid)", url: "https://weather.gov", zoom: "1.1", top: "-10px", left: "-5px", width: "110%", height: "110%" },
-            { land: "USA", stadt: "Miami (Süd-Sektor-Radar)", url: "https://weather.gov", zoom: "1.1", top: "-10px", left: "-5px", width: "110%", height: "110%" },
-            { land: "Japan", stadt: "Tokio (Zentral-Knotenpunkt)", url: "https://jma.go.jp", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" },
-            { land: "Bosnien", stadt: "Sarajevo (Balkan-Node)", url: "https://vrijeme.hr", zoom: "1.0", top: "0px", left: "0px", width: "100%", height: "100%" }
+            { land: "Kroatien", stadt: "Dubrovnik (Hauptstraße Stradun Live)", url: "https://livecamcroatia.com" },
+            { land: "Kroatien", stadt: "Split (Küsten-Promenade Riva Live)", url: "https://livecamcroatia.com" },
+            { land: "Kroatien", stadt: "Zagreb (Ban-Jelacic-Square Live)", url: "https://livecamcroatia.com" },
+            { land: "USA", stadt: "New York (Metropolen-Überwachung)", url: "https://earthcam.com" },
+            { land: "USA", stadt: "NASA (Live Erdüberwachung aus dem Orbit)", url: "https://akamaized.net" },
+            { land: "Japan", stadt: "Tokio (Shibuya-Crossing High-Traffic)", url: "https://earthcam.com" }
         ];
 
         function openLayer(id) { closeAllLayers(); playHackerSound(440); document.getElementById(id).style.display = 'flex'; if(id==='search-layer') document.getElementById('search-input').focus(); if(id==='cam-layer') document.getElementById('cam-input').focus(); }
@@ -163,7 +161,7 @@
                 const d = document.createElement('div'); d.className = 'search-item'; d.innerText = `> NODE: ${c.land.toUpperCase()} [${c.stadt.toUpperCase()}]`;
                 d.onclick = () => {
                     playHackerSound(800); logTerminal(`Baue klicksicheren Tunnel: ${c.stadt}...`, "warn");
-                    buildStreamTunnel(c); closeAllLayers();
+                    buildStreamTunnel(c.stadt, c.url); closeAllLayers();
                 };
                 r.appendChild(d);
             });
@@ -180,56 +178,59 @@
                 document.getElementById('radar-targets').appendChild(circle);
                 const cam = webcamDatabase[Math.floor(Math.random() * webcamDatabase.length)];
                 logTerminal(`[UPLINK HIT!!] Live-Signal abgefangen -> ${cam.stadt}`, "danger");
-                buildStreamTunnel(cam);
+                buildStreamTunnel(cam.stadt, cam.url);
             }, 1000);
         }
 
-        // 3. TUNNEL-BUILDER MIT ZOOM- & CLIP-TRICK (Schneidet Ränder der Websites weg)
-        function buildStreamTunnel(cam) {
+        // 3. UNBLOCKIERBARER TUNNEL-BUILDER MIT HLS.JS (Bricht die Handy-Blockaden)
+        function buildStreamTunnel(title, url) {
             document.getElementById('stream-window').style.display = 'flex';
-            const player = document.getElementById('video-player');
+            const video = document.getElementById('video-player');
             
-            player.style.transform = `scale(${cam.zoom})`;
-            player.style.transformOrigin = "top left";
-            player.style.top = cam.top;
-            player.style.left = cam.left;
-            player.style.width = cam.width;
-            player.style.height = cam.height;
-            
-            player.src = cam.url;
-            document.getElementById('stream-title').innerText = `LINK // ${cam.stadt.toUpperCase()}`;
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('canplay', function() { video.play(); });
+            }
+            document.getElementById('stream-title').innerText = `LINK // ${title.toUpperCase()}`;
+            logTerminal(`HLS-Stream erfolgreich initialisiert.`, "info");
         }
         
         function closeStreamWindow() {
             document.getElementById('stream-window').style.display = 'none';
-            document.getElementById('video-player').src = "";
+            const video = document.getElementById('video-player');
+            video.pause(); video.src = "";
             logTerminal("Tunnel geschlossen. Satellit re-kalibriert.", "info");
         }
 
         // 🟢 GIGANTISCHE OFFLINE-DATENBANK (Teil A - Europäische Sektoren)
         const localCountriesDB = [
-            { name: "Deutschland", code: "DE", cap: "Berlin", pop: "84.400.000", lang: "Deutsch", cur: "Euro (EUR)", boss: "Olaf Scholz (Bundeskanzler)", states: "16 Bundesländer (z.B. Bayern, NRW, Hamburg, Berlin)" },
-            { name: "Kroatien", code: "HR", cap: "Zagreb", pop: "3.850.000", lang: "Kroatisch", cur: "Euro (EUR)", boss: "Andrej Plenković", states: "20 Gespanschaften (Županije) + Zagreb" },
-            { name: "Bosnien und Herzegowina", code: "BA", cap: "Sarajevo", pop: "3.200.000", lang: "Bosnisch, Serbisch, Kroatisch", cur: "Konvertible Mark (BAM)", boss: "Denis Bećirović (Vorsitz)", states: "Föderation Bosnien-Herzegowina, Republika Srpska, Brčko-Distrikt" },
-            { name: "Österreich", code: "AT", cap: "Wien", pop: "9.100.000", lang: "Deutsch", cur: "Euro (EUR)", boss: "Karl Nehammer (Bundeskanzler)", states: "9 Bundesländer (z.B. Wien, Tirol, Steiermark)" },
-            { name: "Schweiz", code: "CH", cap: "Bern", pop: "8.900.000", lang: "Deutsch, Französisch, Italienisch", cur: "Schweizer Franken (CHF)", boss: "Viola Amherd (Bundespräsidentin)", states: "26 Kantone (z.B. Zürich, Bern, Genf)" },
-            { name: "Italien", code: "IT", cap: "Rom", pop: "58.900.000", lang: "Italienisch", cur: "Euro (EUR)", boss: "Giorgia Meloni", states: "20 Regionen (z.B. Toskana, Lombardei, Sizilien)" },
-            { name: "Spanien", code: "ES", cap: "Madrid", pop: "48.000.000", lang: "Spanisch (Kastilisch)", cur: "Euro (EUR)", boss: "Pedro Sánchez", states: "17 Autonome Gemeinschaften (z.B. Andalusien, Katalonien)" },
-            { name: "Frankreich", code: "FR", cap: "Paris", pop: "68.200.000", lang: "Französisch", cur: "Euro (EUR)", boss: "Emmanuel Macron", states: "18 Regionen (z.B. Île-de-France, Bretagne)" },
-            { name: "Türkei", code: "TR", cap: "Ankara", pop: "85.300.000", lang: "Türkisch", cur: "Türkische Lira (TRY)", boss: "Recep Tayyip Erdoğan", states: "81 Provinzen (İller, z.B. Istanbul, Izmir)" }
+            { name: "Deutschland", code: "DE", cap: "Berlin", pop: "84.400.000", lang: "Deutsch", cur: "Euro (EUR)", boss: "Olaf Scholz (Bundeskanzler)", states: "16 Bundesländer (z.B. Bayern, NRW, Hamburg, Berlin, Sachsen, Hessen)" },
+            { name: "Kroatien", code: "HR", cap: "Zagreb", pop: "3.850.000", lang: "Kroatisch", cur: "Euro (EUR)", boss: "Andrej Plenković", states: "20 Gespanschaften (Županije) + Zagreb (Split, Rijeka, Osijek, Zadar)" },
+            { name: "Bosnien und Herzegowina", code: "BA", cap: "Sarajevo", pop: "3.200.000", lang: "Bosnisch, Serbisch, Kroatisch", cur: "Konvertible Mark (BAM)", boss: "Denis Bećirović (Vorsitz)", states: "Föderation Bosnien-Herzegowina, Republika Srpska, Brčko-Distrikt (Mostar, Tuzla, Banja Luka)" },
+            { name: "Österreich", code: "AT", cap: "Wien", pop: "9.100.000", lang: "Deutsch", cur: "Euro (EUR)", boss: "Karl Nehammer (Bundeskanzler)", states: "9 Bundesländer (z.B. Wien, Tirol, Steiermark, Salzburg, Oberösterreich)" },
+            { name: "Schweiz", code: "CH", cap: "Bern", pop: "8.900.000", lang: "Deutsch, Französisch, Italienisch", cur: "Schweizer Franken (CHF)", boss: "Viola Amherd (Bundespräsidentin)", states: "26 Kantone (z.B. Zürich, Bern, Genf, Tessin, Basel, Waadt)" },
+            { name: "Italien", code: "IT", cap: "Rom", pop: "58.900.000", lang: "Italienisch", cur: "Euro (EUR)", boss: "Giorgia Meloni", states: "20 Regionen (z.B. Toskana, Lombardei, Sizilien, Latium, Sardinien)" },
+            { name: "Spanien", code: "ES", cap: "Madrid", pop: "48.000.000", lang: "Spanisch (Kastilisch)", cur: "Euro (EUR)", boss: "Pedro Sánchez", states: "17 Autonome Gemeinschaften (z.B. Andalusien, Katalonien, Mallorca)" },
+            { name: "Frankreich", code: "FR", cap: "Paris", pop: "68.200.000", lang: "Französisch", cur: "Euro (EUR)", boss: "Emmanuel Macron", states: "18 Regionen (z.B. Île-de-France, Bretagne, Provence, Korsika)" },
+            { name: "Türkei", code: "TR", cap: "Ankara", pop: "85.300.000", lang: "Türkisch", cur: "Türkische Lira (TRY)", boss: "Recep Tayyip Erdoğan", states: "81 Provinzen (İller, z.B. Istanbul, Izmir, Antalya, Bursa)" }
         ];
         // CONTINUATION OF THE OFFLINE DATABASE (Teil B - Globale Sektoren & Logik)
         const globalCountriesDB = [
-            { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington D.C.", pop: "335.000.000", lang: "Englisch", cur: "US-Dollar (USD)", boss: "Joe Biden", states: "50 Bundesstaaten (z.B. Kalifornien, Texas, New York)" },
-            { name: "Kanada", code: "CA", cap: "Ottawa", pop: "39.500.000", lang: "Englisch, Französisch", cur: "Kanadischer Dollar (CAD)", boss: "Justin Trudeau", states: "10 Provinzen & 3 Territorien" },
-            { name: "Brasilien", code: "BR", cap: "Brasilia", pop: "215.300.000", lang: "Portugiesisch", cur: "Real (BRL)", boss: "Luiz Inácio Lula da Silva", states: "26 Bundesstaaten + 1 Bundesdistrikt" },
-            { name: "Serbien", code: "RS", cap: "Belgrad", pop: "6.650.000", lang: "Serbisch", cur: "Serbischer Dinar (RSD)", boss: "Aleksandar Vučić", states: "29 Bezirke + Vojvodina" },
-            { name: "Albanien", code: "AL", cap: "Tirana", pop: "2.750.000", lang: "Albanisch", cur: "Lek (ALL)", boss: "Edi Rama", states: "12 Qarke (Präfekturen)" },
-            { name: "Niederlande", code: "NL", cap: "Amsterdam", pop: "17.800.000", lang: "Niederländisch", cur: "Euro (EUR)", boss: "Dick Schoof", states: "12 Provinzen (z.B. Nordholland, Südholland)" },
-            { name: "Ungarn", code: "HU", cap: "Budapest", pop: "9.600.000", lang: "Ungarisch", cur: "Forint (HUF)", boss: "Viktor Orbán", states: "19 Komitate + Budapest" },
-            { name: "Griechenland", code: "GR", cap: "Athen", pop: "10.400.000", lang: "Griechisch", cur: "Euro (EUR)", boss: "Kyriakos Mitsotakis", states: "13 Regionen" },
-            { name: "Japan", code: "JP", cap: "Tokio", pop: "124.000.000", lang: "Japanisch", cur: "Yen (JPY)", boss: "Shigeru Ishiba", states: "47 Präfekturen (z.B. Hokkaido, Kyoto)" },
-            { name: "Australien", code: "AU", cap: "Canberra", pop: "26.500.000", lang: "Englisch", cur: "Australischer Dollar (AUD)", boss: "Anthony Albanese", states: "6 Bundesstaaten & 2 Territorien" }
+            { name: "USA (Vereinigte Staaten)", code: "US", cap: "Washington D.C.", pop: "335.000.000", lang: "Englisch", cur: "US-Dollar (USD)", boss: "Joe Biden", states: "50 Bundesstaaten (z.B. Kalifornien, Texas, New York, Florida)" },
+            { name: "Kanada", code: "CA", cap: "Ottawa", pop: "39.500.000", lang: "Englisch, Französisch", cur: "Kanadischer Dollar (CAD)", boss: "Justin Trudeau", states: "10 Provinzen & 3 Territorien (z.B. Ontario, Québec)" },
+            { name: "Brasilien", code: "BR", cap: "Brasilia", pop: "215.300.000", lang: "Portugiesisch", cur: "Real (BRL)", boss: "Luiz Inácio Lula da Silva", states: "26 Bundesstaaten + 1 Bundesdistrikt (z.B. São Paulo)" },
+            { name: "Serbien", code: "RS", cap: "Belgrad", pop: "6.650.000", lang: "Serbisch", cur: "Serbischer Dinar (RSD)", boss: "Aleksandar Vučić", states: "29 Bezirke + Vojvodina (Novi Sad, Niš, Kragujevac)" },
+            { name: "Albanien", code: "AL", cap: "Tirana", pop: "2.750.000", lang: "Albanisch", cur: "Lek (ALL)", boss: "Edi Rama", states: "12 Qarke (Präfekturen, z.B. Durrës, Vlora, Shkodra)" },
+            { name: "Niederlande", code: "NL", cap: "Amsterdam", pop: "17.800.000", lang: "Niederländisch", cur: "Euro (EUR)", boss: "Dick Schoof", states: "12 Provinzen (z.B. Nordholland, Südholland, Rotterdam)" },
+            { name: "Ungarn", code: "HU", cap: "Budapest", pop: "9.600.000", lang: "Ungarisch", cur: "Forint (HUF)", boss: "Viktor Orbán", states: "19 Komitate + Budapest (Debrecen, Szeged)" },
+            { name: "Griechenland", code: "GR", cap: "Athen", pop: "10.400.000", lang: "Griechisch", cur: "Euro (EUR)", boss: "Kyriakos Mitsotakis", states: "13 Regionen (Thessaloniki, Kreta, Patras, Rhodos)" },
+            { name: "Japan", code: "JP", cap: "Tokio", pop: "124.000.000", lang: "Japanisch", cur: "Yen (JPY)", boss: "Shigeru Ishiba", states: "47 Präfekturen (z.B. Hokkaido, Kyoto, Osaka, Okinawa)" },
+            { name: "Australien", code: "AU", cap: "Canberra", pop: "26.500.000", lang: "Englisch", cur: "Australischer Dollar (AUD)", boss: "Anthony Albanese", states: "6 Bundesstaaten & 2 Territorien (Sydney, Melbourne)" }
         ];
 
         // Zusammenführung der beiden Listen für die unblockierbare Suche
