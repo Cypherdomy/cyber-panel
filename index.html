@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NETWORK_CORE_INTERFACE_v7.0</title>
+    <title>INTERACTIVE_NET_INTERFACE_v9.0</title>
     
     <style>
         body {
@@ -11,13 +11,13 @@
             color: #00ff33;
             font-family: 'Courier New', Courier, monospace;
             margin: 0; padding: 10px;
-            min-height: 100vh;
+            height: 100vh;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             text-shadow: 0 0 5px #00ff33;
-            user-select: none;
-            -webkit-user-select: none;
+            user-select: none; -webkit-user-select: none;
+            overflow: hidden;
         }
 
         /* CRT Monitor Scanline-Effekt */
@@ -37,12 +37,13 @@
 
         .container {
             display: flex; flex-direction: row; gap: 15px; flex-grow: 1;
+            height: calc(100vh - 50px);
         }
 
         @media (max-width: 768px) {
-            .container { flex-direction: column; }
-            .panel.left { min-height: 280px !important; height: 40%; }
-            .panel.right { height: 380px !important; margin-bottom: 20px; }
+            .container { flex-direction: column; overflow-y: auto; }
+            .panel.left { height: 320px !important; flex-shrink: 0; }
+            .panel.right { height: 350px !important; flex-shrink: 0; margin-bottom: 25px; }
         }
 
         .panel {
@@ -53,8 +54,8 @@
             display: flex; flex-direction: column; box-sizing: border-box;
         }
 
-        .panel.left { width: 100%; flex: 1; }
-        .panel.right { width: 100%; flex: 2; position: relative; }
+        .panel.left { width: 100%; flex: 1; height: 100%; }
+        .panel.right { width: 100%; flex: 1.8; height: 100%; position: relative; }
 
         .panel-title {
             font-weight: bold; text-transform: uppercase;
@@ -77,61 +78,77 @@
 
         button:active { background: #00ff33; color: #000; }
 
+        /* Windows CMD Terminal */
         #terminal {
             flex-grow: 1; background: #000; padding: 8px;
-            overflow-y: auto; font-size: 0.75rem;
-            border: 1px solid #003300; margin-top: 10px; min-height: 100px;
+            overflow-y: scroll; font-size: 0.75rem;
+            border: 1px solid #003300; margin-top: 10px;
+            height: 120px; box-sizing: border-box;
         }
+        #terminal::-webkit-scrollbar { width: 4px; }
+        #terminal::-webkit-scrollbar-thumb { background: #004400; }
 
-        /* Das High-Tech Radar & Display-Zentrum */
         #display-master {
             width: 100%; height: 100%; background: #000;
             position: relative; overflow: hidden; border: 1px solid #003300;
         }
 
         #radar-sweep {
-            position: absolute; width: 200%; height: 200%;
-            top: -50%; left: -50%;
+            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
             background: conic-gradient(from 0deg, rgba(0,255,51,0.15) 0deg, rgba(0,255,51,0) 90deg);
             transform-origin: center; animation: sweep 3.5s linear infinite;
             pointer-events: none; z-index: 3;
         }
 
-        svg.vector-map {
-            width: 100%; height: 100%; z-index: 2; position: absolute; top:0; left:0;
-        }
-
+        svg.vector-map { width: 100%; height: 100%; z-index: 2; position: absolute; top:0; left:0; }
         .map-land { fill: none; stroke: #00ff33; stroke-width: 1.5; opacity: 0.75; }
         .map-grid { fill: none; stroke: #001800; stroke-width: 0.5; }
 
-        /* Integriertes Video-Fenster für Webcams */
+        /* Hacker-Suchmaske Overlay */
+        #search-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 5; background: rgba(0, 5, 0, 0.95); display: none;
+            flex-direction: column; padding: 15px; box-sizing: border-box;
+        }
+
+        #search-input {
+            background: #000; color: #00ff33; border: 1px solid #00ff33;
+            padding: 10px; font-family: 'Courier New', monospace;
+            font-size: 1rem; width: 100%; box-sizing: border-box;
+            outline: none; text-transform: uppercase; box-shadow: 0 0 5px #00ff33;
+        }
+
+        #search-results {
+            margin-top: 15px; overflow-y: auto; flex-grow: 1;
+            border: 1px dashed #004400; padding: 5px;
+        }
+
+        .search-item {
+            padding: 8px; border-bottom: 1px solid #002200; cursor: pointer;
+            font-size: 0.85rem; transition: background 0.2s;
+        }
+        .search-item:hover { background: #003300; color: #fff; }
+
+        /* Webcam Layer */
         #webcam-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 4; background: #000; display: none;
-            flex-direction: column;
+            z-index: 4; background: #000; display: none; flex-direction: column;
+        }
+        #webcam-container { width: 100%; height: calc(100% - 30px); display: flex; align-items: center; justify-content: center; background: #020202; overflow: hidden; }
+        #cam-image { width: 100%; height: 100%; object-fit: cover; filter: invert(0.9) hue-rotate(90deg) contrast(1.4) brightness(0.7); }
+        
+        .layer-bar {
+            background: #001500; height: 30px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; font-size: 0.75rem; font-weight: bold; border-bottom: 1px solid #00ff33; flex-shrink: 0;
         }
 
-        #webcam-layer iframe {
-            width: 100%; height: calc(100% - 30px); border: none;
-            filter: invert(0.9) hue-rotate(90deg) contrast(1.3) brightness(0.7);
-        }
-
-        .cam-bar {
-            background: #001500; height: 30px; display: flex;
-            justify-content: space-between; align-items: center;
-            padding: 0 10px; font-size: 0.75rem; font-weight: bold;
-            border-bottom: 1px solid #00ff33;
-        }
-
-        @keyframes sweep {
-            from { transform: rotate(0deg); } to { transform: rotate(360deg); }
-        }
+        @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <header>
-        <div>[SYSTEM: MAIN_FRAME_ONLINE] // VER_7.0</div>
+        <div>[INTERFACE: SYSTEM_GRID] // MODE: LIVE_v9.0</div>
         <div id="live-clock">0000-00-00 00:00:00</div>
     </header>
 
@@ -141,38 +158,51 @@
             <div class="panel-title">> INTERFACE_CONTROL</div>
             <div class="button-group">
                 <button onclick="playHackerSound(520, 'sine', 0.08); triggerRadarScan();">SCAN SENSORS</button>
-                <button onclick="playHackerSound(380, 'sawtooth', 0.12); fetchCountryStats();">LÄNDER STATS</button>
-                <button onclick="playHackerSound(880, 'triangle', 0.05); toggleWebcam();">LIVE WEBCAM</button>
-                <button onclick="playHackerSound(580, 'square', 0.1); closeWebcam();">RADAR MODE</button>
+                <button onclick="playHackerSound(380, 'sawtooth', 0.12); openSearchLayer();">LÄNDER STATS</button>
+                <button onclick="playHackerSound(880, 'triangle', 0.05); startLiveWebcam();">LIVE WEBCAM</button>
+                <button onclick="playHackerSound(580, 'square', 0.1); closeAllLayers();">RADAR MODE</button>
             </div>
             
             <div id="terminal">
-                <div style="color: #00ff33;">[SYSTEM] Zentraler Systemkern v7.0 gestartet.</div>
-                <div style="color: #00ff33;">[SYSTEM] Alle Sensor-Grids einsatzbereit.</div>
+                <div style="color: #00ff33;">[SYSTEM] Interaktiver Kriterien-Filter v9.0 geladen.</div>
+                <div style="color: #00ff33;">[SYSTEM] Warte auf Benutzereingabe...</div>
             </div>
         </div>
 
         <!-- RECHTES HAUPTDISPLAY -->
         <div class="panel right">
-            <div class="panel-title">> VECTOR_RADAR_DISPLAY</div>
+            <div class="panel-title">> VISUAL_CORE_DISPLAY</div>
             <div id="display-master">
                 
                 <!-- Radar-Strahl -->
                 <div id="radar-sweep"></div>
                 
-                <!-- Hacker-Videolayer für freie, legale Webcams -->
-                <div id="webcam-layer">
-                    <div class="cam-bar">
-                        <span id="cam-title">LIVE_FEED // TOKIO_SHIBUYA</span>
-                        <span style="color:#ff0055; cursor:pointer;" onclick="closeWebcam()">[X] CLOSE</span>
+                <!-- Hacker-Suchmaske für gezielte Länder-Auswahl -->
+                <div id="search-layer">
+                    <div class="layer-bar" style="margin-bottom: 10px;">
+                        <span>DATABASE_SEARCH // TARGET_SELECTION</span>
+                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] CLOSE</span>
                     </div>
-                    <iframe id="cam-frame" src=""></iframe>
+                    <input type="text" id="search-input" placeholder="Anfangsbuchstaben eingeben (z.B. K)..." oninput="filterCountries()">
+                    <div id="search-results">
+                        <div style="color: #444; padding: 10px;">Warte auf Eingabe zur Live-Filterung...</div>
+                    </div>
+                </div>
+
+                <!-- Webcam Layer -->
+                <div id="webcam-layer">
+                    <div class="layer-bar">
+                        <span id="cam-title">LIVE_FEED // INITIALISIERE...</span>
+                        <span style="color:#ff0055; font-weight: bold; cursor:pointer;" onclick="closeAllLayers()">[X] DISCONNECT</span>
+                    </div>
+                    <div id="webcam-container">
+                        <img id="cam-image" src="" alt="Live Feed">
+                    </div>
                 </div>
                 
                 <!-- Vektor-Weltkarte -->
                 <svg class="vector-map" viewBox="0 0 1000 500">
                     <path class="map-grid" d="M0,100 L1000,100 M0,200 L1000,200 M0,300 L1000,300 M0,400 L1000,400 M100,0 L100,500 M200,0 L200,500 M300,0 L300,500 M400,0 L400,500 M500,0 L500,500 M600,0 L600,500 M700,0 L700,500 M800,0 L800,500 M900,0 L900,500" />
-                    <!-- Konturen der Weltkarte -->
                     <path class="map-land" d="M150,80 L220,100 L250,150 L200,180 L260,230 L220,280 L240,320 L270,350 L250,450 L220,480 L200,420 L210,320 L160,270 L140,200 L110,140 L100,90 Z" />
                     <path class="map-land" d="M450,100 L550,70 L700,60 L850,90 L900,150 L800,200 L750,180 L650,220 L580,180 L520,140 L460,180 L440,250 L480,300 L550,330 L520,400 L480,450 L450,420 L400,350 L380,250 L420,200 L400,150 Z" />
                     <path class="map-land" d="M780,360 L840,350 L880,390 L850,440 L790,420 Z" />
@@ -181,7 +211,6 @@
             </div>
         </div>
     </div>
-
     <script>
         let audioCtx = null;
         function initAudio() {
@@ -213,9 +242,9 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // 1. RADAR SCAN: Setzt ohne Ausnahmen Punkte auf den Schirm
+        // 1. SAT-SCAN
         function triggerRadarScan() {
-            logTerminal("Analysiere Satelliten-Datenströme...", "warn");
+            logTerminal("Starte orbitalen Frequenz-Scan...", "warn");
             const container = document.getElementById('radar-targets');
             container.innerHTML = '';
             for (let i = 0; i < 3; i++) {
@@ -229,58 +258,128 @@
                     anim.setAttribute("attributeName", "opacity"); anim.setAttribute("values", "1;0;1");
                     anim.setAttribute("dur", "0.8s"); anim.setAttribute("repeatCount", "indefinite");
                     circle.appendChild(anim); container.appendChild(circle);
-                    logTerminal(`STATION_FOUND -> Koordinaten-Grid: [X:${rx} | Y:${ry}]`, "info");
+                    logTerminal(`DETECTION -> Node-Verbindung hergestellt bei Grid: [X:${rx} | Y:${ry}]`, "info");
                     playHackerSound(700, 'sine', 0.05);
                 }, i * 400);
             }
         }
 
-        // 2. LÄNDER STATS: Schnelle, direkt eingebaute Datenbank (Verhindert Internet-Blockaden komplett)
-        const countryDB = [
-            { name: "GERMANY", cap: "Berlin", pop: "83.200.000", status: "STABIL // KI-Core aktiv" },
-            { name: "JAPAN", cap: "Tokio", pop: "125.100.000", status: "UPLINK_READY // High-Tech Netz" },
-            { name: "ICELAND", cap: "Reykjavik", pop: "372.000", status: "SATELLITE_NODE // Kaltes Sektor-Grid" },
-            { name: "USA", cap: "Washington D.C.", pop: "333.000.000", status: "OVERWATCH // Hohe Serverlast" },
-            { name: "AUSTRALIA", cap: "Canberra", pop: "25.600.000", status: "DEEP_SPACE_LINK // Aktiv" }
-        ];
+        // 2. INTERAKTIVER LÄNDER FILTER & LIVE-ABFRAGE (Echtes Internet über fetch)
+        let allCountriesCache = [];
 
-        function fetchCountryStats() {
-            const c = countryDB[Math.floor(Math.random() * countryDB.length)];
-            logTerminal(`Frage globalen Datenbank-Knoten ab...`, "warn");
-            setTimeout(() => {
-                logTerminal(`UPLINK ERFOLGREICH: ${c.name}`, "info");
-                logTerminal(`> Hauptknoten: ${c.cap}`);
-                logTerminal(`> Daten-Bürger: ${c.pop}`);
-                logTerminal(`> Netzwerk-Status: ${c.status}`, "warn");
-                playHackerSound(600, 'triangle', 0.15);
-            }, 300);
+        function openSearchLayer() {
+            document.getElementById('search-layer').style.display = 'flex';
+            document.getElementById('search-input').focus();
+            
+            if (allCountriesCache.length === 0) {
+                logTerminal("Lade globales Länderregister aus dem Internet-Knoten...", "warn");
+                fetch('https://restcountries.com')
+                    .then(res => res.json())
+                    .then(data => {
+                        allCountriesCache = data.map(c => ({ name: c.name.common, code: c.cca2 })).sort((a,b) => a.name.localeCompare(b.name));
+                        logTerminal(`Datalink aktiv: ${allCountriesCache.length} souveräne Ziel-Systeme registriert.`, "info");
+                        filterCountries();
+                    })
+                    .catch(() => logTerminal("API-VERBINDUNGSFEHLER: Register konnte nicht geladen werden.", "danger"));
+            }
         }
 
-        // 3. ECHTE LIVE WEBCAMS (Öffentliche, freie Einbettungen)
-        const camFeeds = [
-            { title: "LIVE_FEED // TOKIO_SHIBUYA", url: "https://youtube-nocookie.com" },
-            { title: "LIVE_FEED // NEW_YORK_TIMES_SQUARE", url: "https://youtube-nocookie.com" }
+        function filterCountries() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const resultsBox = document.getElementById('search-results');
+            resultsBox.innerHTML = '';
+
+            if(query.length === 0) {
+                resultsBox.innerHTML = '<div style="color: #444; padding: 10px;">Tippe einen Buchstaben ein, um das Register zu filtern...</div>';
+                return;
+            }
+
+            const filtered = allCountriesCache.filter(c => c.name.toLowerCase().startsWith(query));
+
+            if(filtered.length === 0) {
+                resultsBox.innerHTML = '<div style="color: #ff0055; padding: 10px;">KEINE PASSENDEN NETZWERKKNOTEN GEFUNDEN.</div>';
+                return;
+            }
+
+            filtered.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                div.innerText = `> NODE: ${c.name.toUpperCase()} [${c.code}]`;
+                div.onclick = () => {
+                    playHackerSound(440, 'triangle', 0.1);
+                    fetchSpecificTarget(c.code);
+                    closeAllLayers();
+                };
+                resultsBox.appendChild(div);
+            });
+        }
+
+        function fetchSpecificTarget(code) {
+            logTerminal(`Sende verschlüsselten Daten-Request für Knoten [${code}]...`, "warn");
+            
+            fetch(`https://restcountries.com{code}`)
+                .then(res => res.json())
+                .then(data => {
+                    const c = data[0] || data;
+                    const name = c.name.common.toUpperCase();
+                    const flag = c.flag ? c.flag : '⚙️';
+                    const cap = c.capital ? c.capital[0] : 'Unbekannt';
+                    const pop = c.population.toLocaleString();
+                    const curCode = Object.keys(c.currencies)[0];
+                    const curName = c.currencies[curCode].name;
+                    const curSym = c.currencies[curCode].symbol || '';
+                    const lang = Object.values(c.languages).join(', ');
+                    const tzone = c.timezones.join(' | ');
+                    const mapUrl = c.maps.googleMaps;
+
+                    logTerminal(`======= [ TARGET PACKET: ${flag} ${name} ] =======`, "info");
+                    logTerminal(` > HAUPTKNOTEN:   ${cap.toUpperCase()}`);
+                    logTerminal(` > NETZ-BÜRGER:   ${pop}`);
+                    logTerminal(` > SPRACH-DECK:   ${lang}`);
+                    logTerminal(` > WAHRUNGS-ID:   ${curName} (${curCode} [${curSym}])`);
+                    logTerminal(` > ZEITZONEN:     ${tzone}`);
+                    logTerminal(` > GOOGLE_UPLINK: ${mapUrl}`, "warn");
+                    logTerminal(`==========================================`, "info");
+                    playHackerSound(600, 'triangle', 0.2);
+                })
+                .catch(() => logTerminal(`CRITICAL: Paketverlust bei Abfrage von Knoten ${code}.`, "danger"));
+        }
+
+        // 3. WEBCAM SYSTEM
+        const webcams = [
+            { title: "LIVE_FEED // STRANDKAFEE_NORDERNEY", url: "https://norderney.de" },
+            { title: "LIVE_FEED // MARKTPLATZ_HEIDELBERG", url: "https://heidelberg-webcam.de" },
+            { title: "LIVE_FEED // ALPEN_PANORAMA", url: "https://foto-webcam.ch" }
         ];
         let currentCamIndex = 0;
+        let camInterval = null;
 
-        function toggleWebcam() {
+        function startLiveWebcam() {
             const layer = document.getElementById('webcam-layer');
-            const frame = document.getElementById('cam-frame');
+            const img = document.getElementById('cam-image');
             const title = document.getElementById('cam-title');
-            const feed = camFeeds[currentCamIndex];
             
-            title.innerText = feed.title;
-            frame.src = feed.url;
+            closeAllLayers();
             layer.style.display = 'flex';
             
-            logTerminal(`Verbinde Video-Matrix: ${feed.title}`, "info");
-            currentCamIndex = (currentCamIndex + 1) % camFeeds.length;
+            function updateCamFrame() {
+                const feed = webcams[currentCamIndex];
+                title.innerText = feed.title;
+                img.src = feed.url + "?t=" + new Date().getTime();
+            }
+
+            updateCamFrame();
+            logTerminal(`Starte Webcam-Stream...`, "warn");
+            camInterval = setInterval(updateCamFrame, 2000);
+            currentCamIndex = (currentCamIndex + 1) % webcams.length;
         }
 
-        function closeWebcam() {
+        function closeAllLayers() {
+            clearInterval(camInterval);
             document.getElementById('webcam-layer').style.display = 'none';
-            document.getElementById('cam-frame').src = "";
-            logTerminal("Video-Matrix getrennt. Re-aktiviere Satelliten-Radar.", "info");
+            document.getElementById('search-layer').style.display = 'none';
+            document.getElementById('cam-image').src = "";
+            document.getElementById('search-input').value = "";
         }
     </script>
 </body>
